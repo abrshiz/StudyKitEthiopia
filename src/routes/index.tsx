@@ -32,6 +32,7 @@ function Landing() {
             <a href="#features" className="hover:text-foreground">Features</a>
             <a href="#departments" className="hover:text-foreground">Departments</a>
             <a href="#pricing" className="hover:text-foreground">Pricing</a>
+            <Link to="/status" className="hover:text-foreground">Status</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login"><Button variant="ghost" size="sm">Sign in</Button></Link>
@@ -59,8 +60,8 @@ function Landing() {
             <Link to="/register">
               <Button size="lg" className="gap-2">Start free with .edu.et email <ArrowRight className="h-4 w-4" /></Button>
             </Link>
-            <Link to="/dashboard">
-              <Button size="lg" variant="outline">View demo dashboard</Button>
+            <Link to="/status">
+              <Button size="lg" variant="outline">See what&apos;s live</Button>
             </Link>
           </div>
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 justify-center text-xs text-muted-foreground">
@@ -109,7 +110,10 @@ function Landing() {
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-5 py-8 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-3">
           <span>© 2026 StudyKit ET · Made in Addis Ababa</span>
-          <span>Privacy · Terms · Academic integrity policy</span>
+          <span className="flex gap-3">
+            <Link to="/status" className="hover:text-foreground">Platform status</Link>
+            <span>Privacy · Terms</span>
+          </span>
         </div>
       </footer>
     </div>

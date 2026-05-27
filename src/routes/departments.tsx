@@ -1,30 +1,36 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { departments } from "@/lib/data";
+import { collegeFilters } from "@/config/colleges";
+import { FeatureNotice } from "@/components/coming-soon";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, Users } from "lucide-react";
+import { Search, GraduationCap } from "lucide-react";
+import { setSelectedDepartment } from "@/lib/session";
 
 export const Route = createFileRoute("/departments")({
   head: () => ({ meta: [{ title: "Choose your department — StudyKit ET" }] }),
   component: Departments,
 });
 
-const colleges = ["All", "Engineering & Technology", "Health Sciences", "Natural Sciences", "Agriculture", "Business & Economics", "Law", "Education", "Arts", "Language & Communication", "Social Sciences & Humanities"];
-
 function Departments() {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const [college, setCollege] = useState("All");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [college, setCollege] = useState<(typeof collegeFilters)[number]>("All");
 
-  const filtered = useMemo(() => {
-    return departments.filter((d) =>
-      (college === "All" || d.college === college) &&
-      d.name.toLowerCase().includes(q.toLowerCase())
-    );
+  const filteredCount = useMemo(() => {
+    if (!q.trim() && college === "All") return 0;
+    return 0;
   }, [q, college]);
+
+  function continueAsGuest() {
+    setSelectedDepartment({
+      id: "pending",
+      name: "Department not selected",
+      college: college === "All" ? "—" : college,
+    });
+    navigate({ to: "/dashboard" });
+  }
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-5">
@@ -37,20 +43,34 @@ function Departments() {
         </div>
 
         <h1 className="text-3xl font-semibold tracking-tight">Choose your department</h1>
-        <p className="mt-2 text-muted-foreground">231 departments across all Ethiopian public universities. Pick yours to personalize your library.</p>
+        <p className="mt-2 text-muted-foreground">
+          The full catalog of Ethiopian university departments will appear here once the API is connected.
+        </p>
+
+        <div className="mt-6">
+          <FeatureNotice featureId="departments" />
+        </div>
 
         <div className="mt-6 relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search e.g. Software Engineering, Medicine, Accounting…" className="pl-10 h-12" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search e.g. Software Engineering, Medicine, Accounting…"
+            className="pl-10 h-12"
+          />
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-          {colleges.map((c) => (
+          {collegeFilters.map((c) => (
             <button
               key={c}
+              type="button"
               onClick={() => setCollege(c)}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs border transition ${
-                college === c ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent/40"
+                college === c
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background hover:bg-accent/40"
               }`}
             >
               {c}
@@ -58,41 +78,24 @@ function Departments() {
           ))}
         </div>
 
-        <div className="mt-2 text-xs text-muted-foreground">{filtered.length} departments</div>
-
-        <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.slice(0, 60).map((d) => {
-            const active = selected === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setSelected(d.id)}
-                className="text-left"
-              >
-                <Card className={`p-4 transition ${active ? "border-primary ring-2 ring-primary/20" : "hover:border-primary/40"}`}>
-                  <Badge variant="secondary" className="text-[10px]">{d.college}</Badge>
-                  <div className="font-medium mt-2">{d.name}</div>
-                  <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <Users className="h-3 w-3" /> {d.students.toLocaleString()} students
-                  </div>
-                </Card>
-              </button>
-            );
-          })}
+        <div className="mt-2 text-xs text-muted-foreground">
+          {filteredCount} departments {q.trim() ? `matching “${q}”` : "loaded"}
         </div>
 
-        {filtered.length > 60 && (
-          <div className="text-center text-xs text-muted-foreground mt-4">
-            Showing 60 of {filtered.length} — refine your search to see more
-          </div>
-        )}
+        <Card className="mt-6 p-10 text-center border-dashed">
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Department data is not loaded yet. You can still explore the app — select a college filter and continue,
+            then switch your department when the catalog goes live.
+          </p>
+        </Card>
 
-        <div className="sticky bottom-4 mt-8 flex justify-end">
-          <Link to="/dashboard">
-            <Button size="lg" disabled={!selected}>
-              {selected ? "Continue to dashboard" : "Select a department"}
-            </Button>
+        <div className="sticky bottom-4 mt-8 flex flex-wrap justify-end gap-2">
+          <Link to="/login">
+            <Button variant="outline">Sign in first</Button>
           </Link>
+          <Button size="lg" onClick={continueAsGuest}>
+            Continue to dashboard
+          </Button>
         </div>
       </div>
     </div>
