@@ -8,7 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 
-import appCss from "../styles.css?url";
+import appCss from "../style.css?url";
 
 function NotFoundComponent() {
   return (
@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "StudyKit ET — AI Study Kit for Ethiopian University Students" },
+      {
+        name: "description",
+        content: "AI-powered study materials and tools for Ethiopian university students.",
+      },
+      { property: "og:title", content: "StudyKit ET" },
+      {
+        property: "og:description",
+        content: "AI-powered study materials and tools for Ethiopian university students.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
