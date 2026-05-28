@@ -6,8 +6,7 @@ import { HttpError } from "../utils/http.js";
 export type SessionPayload = {
   sub: string;
   email: string;
-  role: "student" | "professor" | "admin";
-  approvalStatus: "pending" | "approved" | "rejected";
+  role: "student" | "professor";
 };
 
 export function signSessionToken(payload: SessionPayload): string {

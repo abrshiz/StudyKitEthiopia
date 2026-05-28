@@ -1,11 +1,14 @@
 import type { StoredUser } from "@/lib/session";
-import { resolveUserRole } from "./role-from-email";
 
+/**
+ * Post-login destination. With approval-gating removed and `student` being
+ * the default role, the only remaining branch is the department-picker for
+ * users who haven't chosen one yet.
+ */
 export function getPostLoginPath(
-  user: StoredUser,
+  _user: StoredUser,
   hasDepartment: boolean,
-): "/pending-approval" | "/departments" | "/dashboard" {
-  if (user.approvalStatus === "pending") return "/pending-approval";
-  if (resolveUserRole(user) === "student" && !hasDepartment) return "/departments";
+): "/departments" | "/dashboard" {
+  if (!hasDepartment) return "/departments";
   return "/dashboard";
 }

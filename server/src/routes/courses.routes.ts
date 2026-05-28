@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler, HttpError } from "../utils/http.js";
-import { requireAdmin, requireApprovedUser } from "../middleware/user-context.js";
+import { requireRole, requireUser } from "../middleware/user-context.js";
 import {
   createCourse,
   deleteCourse,
@@ -14,7 +14,7 @@ export const coursesRouter = Router();
 coursesRouter.get(
   "/",
   asyncHandler(async (req, res) => {
-    requireApprovedUser(req);
+    requireUser(req);
     const departmentId =
       typeof req.query.departmentId === "string" ? req.query.departmentId : undefined;
     const q = typeof req.query.q === "string" ? req.query.q : undefined;
@@ -33,10 +33,12 @@ const createSchema = z.object({
   active: z.boolean().optional(),
 });
 
+const requireProfessor = requireRole("professor");
+
 coursesRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    requireAdmin(req);
+    requireProfessor(req);
     const body = createSchema.safeParse(req.body);
     if (!body.success) throw new HttpError(400, body.error.message);
     res.status(201).json(await createCourse(body.data));
@@ -51,7 +53,7 @@ const updateSchema = createSchema
 coursesRouter.patch(
   "/:id",
   asyncHandler(async (req, res) => {
-    requireAdmin(req);
+    requireProfessor(req);
     const id = String(req.params.id ?? "");
     if (!id) throw new HttpError(400, "Course id required");
     const body = updateSchema.safeParse(req.body);
@@ -63,7 +65,7 @@ coursesRouter.patch(
 coursesRouter.delete(
   "/:id",
   asyncHandler(async (req, res) => {
-    requireAdmin(req);
+    requireProfessor(req);
     const id = String(req.params.id ?? "");
     if (!id) throw new HttpError(400, "Course id required");
     res.json(await deleteCourse(id));

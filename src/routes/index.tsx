@@ -185,8 +185,8 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Watermarked & secure",
-    desc: "Every PDF is dynamically watermarked with your student ID. DRM-lite expires after the semester.",
+    title: "Private & secure",
+    desc: "Your uploads stay private until you flip a kit to public — the shared library only sees what you publish.",
   },
   {
     icon: Languages,

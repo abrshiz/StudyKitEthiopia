@@ -2,39 +2,21 @@ import type { UserDocument } from "../models/User.js";
 
 export type AppRole = UserDocument["role"];
 
-/** Infer role from Ethiopian university email patterns (no manual selection). */
-export function detectRoleFromEmail(email: string): AppRole {
-  const normalized = email.trim().toLowerCase();
-  const [local = "", domain = ""] = normalized.split("@");
-
-  if (!local || !domain) return "student";
-
-  if (
-    /^(admin|registrar|sysadmin|studykit|it-support|itsupport)([._-]|$)/.test(local) ||
-    local === "admin" ||
-    domain.startsWith("admin.") ||
-    domain.includes(".admin.")
-  ) {
-    return "admin";
-  }
-
-  if (
-    /^(prof|professor|lecturer|faculty|teacher|staff|dr|instructor)([._-]|$)/.test(local) ||
-    domain.startsWith("staff.") ||
-    domain.startsWith("faculty.") ||
-    domain.includes(".staff.") ||
-    domain.includes(".faculty.")
-  ) {
-    return "professor";
-  }
-
+/**
+ * Every signup is a `student` by default. The previous heuristic that
+ * promoted certain email patterns to `professor` / `admin` is gone — users
+ * now explicitly opt-in to the professor role via `POST /auth/become-professor`
+ * (admin role no longer exists).
+ *
+ * The function survives so legacy call sites keep compiling, but it is now
+ * a constant.
+ */
+export function detectRoleFromEmail(_email: string): AppRole {
   return "student";
 }
 
 export function roleLabel(role: AppRole): string {
   switch (role) {
-    case "admin":
-      return "Administrator";
     case "professor":
       return "Lecturer / Professor";
     default:

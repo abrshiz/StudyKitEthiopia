@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { getPostLoginPath } from "@/lib/auth/routing";
-import { resolveUserRole } from "@/lib/auth/role-from-email";
 import { getSelectedDepartment, getUser } from "@/lib/session";
 
 export type RouteGuardOptions = {
@@ -9,10 +8,8 @@ export type RouteGuardOptions = {
   guestOnly?: boolean;
   /** Must be signed in */
   requireAuth?: boolean;
-  /** Must be approved (not pending/rejected) */
+  /** @deprecated approval gating was removed; alias of requireAuth */
   requireApproved?: boolean;
-  /** If set, only these roles may view the page */
-  allowedRoles?: Array<"student" | "professor" | "admin">;
   /** Students must have picked a department */
   requireStudentDepartment?: boolean;
 };
@@ -23,7 +20,6 @@ export type RouteGuardOptions = {
 export function useRouteGuard(options: RouteGuardOptions): boolean {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
-  const allowedRolesKey = options.allowedRoles?.join(",") ?? "";
 
   useEffect(() => {
     const user = getUser();
@@ -40,37 +36,16 @@ export function useRouteGuard(options: RouteGuardOptions): boolean {
       return;
     }
 
-    if (options.requireAuth || options.requireApproved || options.allowedRoles) {
+    if (options.requireAuth || options.requireApproved) {
       if (!user) {
         navigate({ to: "/login", replace: true });
         return;
       }
     }
 
-    if (options.requireApproved && user) {
-      if (user.approvalStatus === "pending") {
-        navigate({ to: "/pending-approval", replace: true });
-        return;
-      }
-      if (user.approvalStatus === "rejected") {
-        navigate({ to: "/login", replace: true });
-        return;
-      }
-    }
-
-    if (user && options.allowedRoles?.length) {
-      const role = resolveUserRole(user);
-      if (!options.allowedRoles.includes(role)) {
-        navigate({ to: "/dashboard", replace: true });
-        return;
-      }
-    }
-
-    if (options.requireStudentDepartment && user) {
-      if (resolveUserRole(user) === "student" && !getSelectedDepartment()) {
-        navigate({ to: "/departments", replace: true });
-        return;
-      }
+    if (options.requireStudentDepartment && user && !getSelectedDepartment()) {
+      navigate({ to: "/departments", replace: true });
+      return;
     }
 
     setReady(true);
@@ -80,8 +55,6 @@ export function useRouteGuard(options: RouteGuardOptions): boolean {
     options.requireAuth,
     options.requireApproved,
     options.requireStudentDepartment,
-    options.allowedRoles,
-    allowedRolesKey,
   ]);
 
   return ready;

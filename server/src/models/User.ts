@@ -8,11 +8,11 @@ const subscriptionSchema = new Schema(
       default: "free",
     },
     expiryDate: { type: Date, default: null },
-    dailyDownloadsLeft: { type: Number, default: 5, min: 0 },
-    dailyDownloadsResetAt: { type: Date, default: () => new Date(0) },
+    /** Monthly kit-creation quota — replaces the old daily download bucket. */
+    kitsCreatedThisMonth: { type: Number, default: 0, min: 0 },
+    monthlyResetAt: { type: Date, default: () => new Date(0) },
     streakDays: { type: Number, default: 0, min: 0 },
     lastActiveDate: { type: Date, default: null },
-    totalDownloads: { type: Number, default: 0, min: 0 },
   },
   { _id: false },
 );
@@ -31,25 +31,16 @@ const userSchema = new Schema(
      * also have credentials-only users without colliding on null.
      */
     microsoftId: { type: String, default: null },
-    role: { type: String, enum: ["student", "professor", "admin"], default: "student" },
-    approvalStatus: {
-      type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
-    },
-    approvedAt: { type: Date, default: null },
-    approvedById: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    /**
+     * `student` is the default for every signup. Any user can flip themselves
+     * to `professor` later to publish content into the shared library. There
+     * is no admin role.
+     */
+    role: { type: String, enum: ["student", "professor"], default: "student" },
     phone: { type: String, trim: true },
     university: { type: String, trim: true },
     year: { type: String, trim: true },
     departmentId: { type: Schema.Types.ObjectId, ref: "Department", default: null },
-    /** Professors are scoped to one department for uploads / analytics / tickets. */
-    professorDepartmentId: {
-      type: Schema.Types.ObjectId,
-      ref: "Department",
-      default: null,
-      index: true,
-    },
     /** Denormalized badge slugs for fast UI reads (history lives in UserBadge). */
     badges: { type: [String], default: [] },
     subscription: { type: subscriptionSchema, default: () => ({}) },
@@ -60,7 +51,6 @@ const userSchema = new Schema(
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ microsoftId: 1 }, { unique: true, sparse: true });
 userSchema.index({ departmentId: 1 });
-userSchema.index({ approvalStatus: 1, createdAt: -1 });
 
 export type UserDocument = InferSchemaType<typeof userSchema> & { _id: Types.ObjectId };
 

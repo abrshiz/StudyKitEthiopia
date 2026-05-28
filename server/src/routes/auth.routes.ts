@@ -3,11 +3,12 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { asyncHandler, HttpError } from "../utils/http.js";
-import { requireApprovedUser, requireUser } from "../middleware/auth.middleware.js";
+import { requireUser } from "../middleware/auth.middleware.js";
 import {
   getCurrentUser,
   loginUser,
   registerUser,
+  selfPromoteToProfessor,
   setUserDepartment,
   upsertOAuthUser,
 } from "../services/auth.service.js";
@@ -43,6 +44,9 @@ authRouter.post(
     const body = registerSchema.safeParse(req.body);
     if (!body.success) throw new HttpError(400, body.error.message);
     const user = await registerUser(body.data);
+    // Sign-in immediately on register — no approval gate.
+    const token = signSessionToken({ sub: user._id, email: user.email, role: user.role });
+    setSessionCookie(res, token);
     res.status(201).json(user);
   }),
 );
@@ -53,12 +57,7 @@ authRouter.post(
     const body = loginSchema.safeParse(req.body);
     if (!body.success) throw new HttpError(400, body.error.message);
     const user = await loginUser(body.data.email, body.data.password);
-    const token = signSessionToken({
-      sub: user._id,
-      email: user.email,
-      role: user.role,
-      approvalStatus: user.approvalStatus,
-    });
+    const token = signSessionToken({ sub: user._id, email: user.email, role: user.role });
     setSessionCookie(res, token);
     await AuditLog.create({
       userId: user._id,
@@ -94,10 +93,26 @@ authRouter.get(
 authRouter.patch(
   "/department",
   asyncHandler(async (req, res) => {
-    const user = requireApprovedUser(req);
+    const user = requireUser(req);
     const body = departmentSchema.safeParse(req.body);
     if (!body.success) throw new HttpError(400, body.error.message);
     res.json(await setUserDepartment(user._id, body.data.departmentId));
+  }),
+);
+
+/**
+ * Self-promote the current account to `professor` (so uploads can land in the
+ * shared library). No-op when the user is already a professor.
+ */
+authRouter.post(
+  "/become-professor",
+  asyncHandler(async (req, res) => {
+    const session = requireUser(req);
+    const user = await selfPromoteToProfessor(session._id);
+    // Re-issue cookie so the JWT carries the new role.
+    const token = signSessionToken({ sub: user._id, email: user.email, role: user.role });
+    setSessionCookie(res, token);
+    res.json(user);
   }),
 );
 
@@ -147,12 +162,7 @@ authRouter.get(
 
     const profile = await exchangeCodeForProfile(code);
     const user = await upsertOAuthUser(profile);
-    const token = signSessionToken({
-      sub: user._id,
-      email: user.email,
-      role: user.role,
-      approvalStatus: user.approvalStatus,
-    });
+    const token = signSessionToken({ sub: user._id, email: user.email, role: user.role });
     setSessionCookie(res, token);
     await AuditLog.create({
       userId: user._id,
@@ -162,9 +172,7 @@ authRouter.get(
       ip: req.ip ?? "",
     });
 
-    const target =
-      user.approvalStatus === "pending" ? "/pending-approval" : "/dashboard";
-    res.redirect(`${env.publicAppUrl}${target}?microsoft=success`);
+    res.redirect(`${env.publicAppUrl}/dashboard?microsoft=success`);
   }),
 );
 

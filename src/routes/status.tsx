@@ -17,12 +17,12 @@ const endpoints = [
   "GET  /notifications",
   "GET  /billing/plans",
   "POST /billing/checkout",
-  "GET  /admin/dashboard",
   "GET  /search?q=",
   "GET  /chat",
   "POST /chat",
   "POST /auth/login",
   "POST /auth/register",
+  "POST /auth/become-professor",
 ];
 
 function StatusPage() {

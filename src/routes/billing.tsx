@@ -20,7 +20,7 @@ export const Route = createFileRoute("/billing")({
 
 function Billing() {
   return (
-    <GuardedPage guard={{ requireAuth: true, requireApproved: true }}>
+    <GuardedPage guard={{ requireAuth: true }}>
       <BillingPage />
     </GuardedPage>
   );
@@ -93,7 +93,7 @@ function BillingPage() {
                 )}
               </p>
               <p className="text-xs text-muted-foreground">
-                Downloads left today: {user.subscription.dailyDownloadsLeft}
+                Kits created this month: {user.subscription.kitsCreatedThisMonth}
               </p>
             </div>
           </Card>

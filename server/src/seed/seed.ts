@@ -1,6 +1,9 @@
 /**
  * Seeds reference + demo data for local development.
  * Run: npm run seed --prefix server
+ *
+ * NOTE: this is the phase-1 minimal seed. Phase 5 ("phase5-seed") rewrites
+ * it to also create demo StudyKits, flashcards, quizzes, summaries, etc.
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
@@ -10,23 +13,25 @@ import {
   AiContext,
   Badge,
   ChatMessage,
-  CourseProgress,
   Course,
+  CourseProgress,
   Department,
+  Flashcard,
   Material,
   Notification,
   Plan,
-  SupportTicket,
+  QuizQuestion,
+  StudyGuide,
+  StudyKit,
+  Summary,
   User,
   UserBadge,
   UserProgress,
 } from "../models/index.js";
-import { detectRoleFromEmail } from "../utils/role-from-email.js";
 import { chunkText } from "../services/ai-context.service.js";
 
 const DEMO_PASSWORD = "StudyKit123!";
 const DEMO_STUDENT = "student@aau.edu.et";
-const DEMO_ADMIN = "admin@aau.edu.et";
 const DEMO_PROFESSOR = "prof.cs@aau.edu.et";
 
 const FOUR_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 4;
@@ -99,7 +104,7 @@ async function seedPlans() {
       name: "Free",
       price: 0,
       period: "forever",
-      features: ["5 downloads/day", "Basic AI chat", "Single department"],
+      features: ["3 study kits / month", "Basic AI chat", "Flashcards + summaries"],
       sortOrder: 0,
     },
     {
@@ -109,10 +114,10 @@ async function seedPlans() {
       period: "month",
       popular: true,
       features: [
-        "50 downloads/day",
-        "Unlimited AI chat",
-        "All departments",
-        "Watermarked PDFs",
+        "30 study kits / month",
+        "Smart Study (adaptive quiz)",
+        "Practice tests",
+        "YouTube transcript ingest",
       ],
       sortOrder: 1,
     },
@@ -122,10 +127,10 @@ async function seedPlans() {
       price: 299,
       period: "month",
       features: [
-        "Everything in Student",
-        "Priority AI",
-        "Past exams archive",
-        "Email support",
+        "Unlimited study kits",
+        "Gemini 1.5 Pro priority",
+        "Exam analytics",
+        "Game modes",
       ],
       sortOrder: 2,
     },
@@ -137,30 +142,53 @@ async function seedBadges() {
   await Badge.deleteMany({});
   await Badge.insertMany([
     { slug: "streak-7", name: "7-Day Streak", icon: "🔥", description: "7 days in a row" },
-    { slug: "first-download", name: "First Download", icon: "📥", description: "First material" },
-    { slug: "quiz-master", name: "Quiz Master", icon: "🧠", description: "10 quizzes" },
-    { slug: "night-owl", name: "Night Owl", icon: "🌙", description: "Study after 10 PM" },
     { slug: "streak-30", name: "30-Day Streak", icon: "⚡", description: "30 day streak" },
+    { slug: "first-kit", name: "First Kit", icon: "🎒", description: "Created your first study kit" },
     {
-      slug: "materials-100",
-      name: "100 Materials",
-      icon: "📚",
-      description: "100 materials opened",
+      slug: "quiz-master",
+      name: "Quiz Master",
+      icon: "🧠",
+      description: "Finished 10 quizzes",
     },
-    { slug: "downloader-bronze", name: "Bronze Scholar", icon: "🥉", description: "10 downloads" },
-    { slug: "downloader-silver", name: "Silver Scholar", icon: "🥈", description: "50 downloads" },
-    { slug: "downloader-gold", name: "Gold Scholar", icon: "🥇", description: "100 downloads" },
+    {
+      slug: "kit-creator-bronze",
+      name: "Bronze Creator",
+      icon: "🥉",
+      description: "Created 5 study kits",
+    },
+    {
+      slug: "kit-creator-silver",
+      name: "Silver Creator",
+      icon: "🥈",
+      description: "Created 25 study kits",
+    },
+    {
+      slug: "kit-creator-gold",
+      name: "Gold Creator",
+      icon: "🥇",
+      description: "Created 100 study kits",
+    },
   ]);
   console.info("[seed] badges");
 }
 
 async function upsertUser(email: string, fields: Record<string, unknown>) {
-  // Use findOneAndUpdate({upsert:true}) so we don't crash on existing
-  // demo users (likely from a previous schema). Existing fields are
-  // overwritten with the canonical demo values; missing fields are filled.
   return User.findOneAndUpdate(
     { email },
-    { $set: fields, $setOnInsert: { email } },
+    {
+      $set: fields,
+      $setOnInsert: { email },
+      // Make sure we drop any legacy fields that no longer exist on the schema.
+      $unset: {
+        approvalStatus: "",
+        approvedAt: "",
+        approvedById: "",
+        professorDepartmentId: "",
+        "subscription.dailyDownloadsLeft": "",
+        "subscription.dailyDownloadsResetAt": "",
+        "subscription.totalDownloads": "",
+      },
+    },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   );
 }
@@ -172,37 +200,22 @@ async function seedUsers() {
   const student = await upsertUser(DEMO_STUDENT, {
     name: "Demo Student",
     passwordHash: hash,
-    role: detectRoleFromEmail(DEMO_STUDENT),
-    approvalStatus: "approved",
-    approvedAt: new Date(),
+    role: "student",
     university: "Addis Ababa University",
     year: "Year 2",
     departmentId: csDept?._id ?? null,
-    subscription: { plan: "free", dailyDownloadsLeft: 5 },
   });
 
   const professor = await upsertUser(DEMO_PROFESSOR, {
     name: "Prof. Tewodros (CS)",
     passwordHash: hash,
     role: "professor",
-    approvalStatus: "approved",
-    approvedAt: new Date(),
     university: "Addis Ababa University",
     departmentId: csDept?._id ?? null,
-    professorDepartmentId: csDept?._id ?? null,
-  });
-
-  const admin = await upsertUser(DEMO_ADMIN, {
-    name: "StudyKit Admin",
-    passwordHash: hash,
-    role: "admin",
-    approvalStatus: "approved",
-    approvedAt: new Date(),
-    university: "Addis Ababa University",
   });
 
   console.info("[seed] demo users upserted (password: StudyKit123!)");
-  return { student, professor, admin, csDept };
+  return { student, professor, csDept };
 }
 
 async function seedCoursesForCs(csDeptId: Types.ObjectId) {
@@ -239,7 +252,6 @@ async function seedMaterials(uploaderId: Types.ObjectId, csDeptId: Types.ObjectI
     expiryDate: expiry,
   });
 
-  // Synthetic AI context so the chat works without an actual PDF.
   const seedText = [
     "Big-O notation describes the upper bound of an algorithm's runtime relative to its input size.",
     "Binary search runs in O(log n) time because each comparison halves the search space.",
@@ -253,11 +265,11 @@ async function seedMaterials(uploaderId: Types.ObjectId, csDeptId: Types.ObjectI
 
   const chunks = chunkText(seedText, 500);
   await AiContext.insertMany(
-    chunks.map((chunkText, idx) => ({
+    chunks.map((chunk, idx) => ({
       materialId: sample._id,
       departmentId: csDeptId,
       courseCode: "CSE 201",
-      chunkText,
+      chunkText: chunk,
       chunkIndex: idx,
     })),
   );
@@ -327,7 +339,7 @@ async function seedUserData(studentId: Types.ObjectId) {
     { userId: studentId, course: "CSE 303", percent: 30, hoursLabel: "5h" },
   ]);
 
-  const badges = await Badge.find({ slug: { $in: ["streak-7", "first-download"] } }).lean();
+  const badges = await Badge.find({ slug: { $in: ["streak-7", "first-kit"] } }).lean();
   if (badges.length) {
     await UserBadge.insertMany(
       badges.map((b) => ({ userId: studentId, badgeId: b._id, earnedAt: new Date() })),
@@ -337,9 +349,9 @@ async function seedUserData(studentId: Types.ObjectId) {
   await Notification.insertMany([
     {
       userId: studentId,
-      title: "New material uploaded",
-      body: "Algorithms lecture notes are now in your library.",
-      type: "material",
+      title: "Welcome to StudyKit",
+      body: "Upload your first PDF or paste a YouTube link to build a study kit.",
+      type: "system",
       read: false,
     },
     {
@@ -367,31 +379,166 @@ async function seedUserData(studentId: Types.ObjectId) {
   console.info("[seed] progress, notifications, chat for demo student");
 }
 
-async function seedTickets(studentId: Types.ObjectId, csDeptId: Types.ObjectId) {
-  if ((await SupportTicket.countDocuments()) > 0) {
-    console.info("[seed] tickets already exist — skipped");
+async function seedDemoStudyKits(
+  professorId: Types.ObjectId,
+  studentId: Types.ObjectId,
+  csDeptId: Types.ObjectId,
+) {
+  const existing = await StudyKit.countDocuments({ isPublic: true });
+  if (existing >= 2) {
+    console.info("[seed] public study kits already exist — skipped");
     return;
   }
 
-  await SupportTicket.insertMany([
-    {
-      userId: studentId,
-      subject: "Cannot open CSE 202 past exam",
-      message: "The download keeps failing on my laptop. Mobile works fine.",
-      status: "Open",
+  const algoText = [
+    "Big-O notation describes the upper bound of an algorithm's runtime.",
+    "Binary search runs in O(log n). Merge sort is O(n log n). Quicksort averages O(n log n).",
+    "Hash tables offer expected O(1) operations. BFS finds shortest paths in unweighted graphs.",
+    "Dijkstra's algorithm handles non-negative edge weights. Dynamic programming breaks problems into subproblems.",
+  ].join("\n");
+
+  const photoText = [
+    "Photosynthesis converts light energy into chemical energy in chloroplasts.",
+    "The light reactions produce ATP and NADPH in the thylakoid membrane.",
+    "The Calvin cycle fixes CO2 into glucose in the stroma.",
+    "Chlorophyll absorbs red and blue light; green light is reflected.",
+    "Factors affecting rate: light intensity, CO2 concentration, and temperature.",
+  ].join("\n");
+
+  const algoKit = await StudyKit.create({
+    userId: professorId,
+    title: "CSE 201 — Algorithms (public demo)",
+    description: "Sample public kit for the shared library",
+    sourceType: "topic",
+    language: "en",
+    isPublic: true,
+    sharedDepartmentId: csDeptId,
+    sourceMeta: { topicPrompt: "University algorithms midterm" },
+    flashcardCount: 8,
+    quizQuestionCount: 5,
+    hasSummary: true,
+    hasGuide: true,
+  });
+
+  await AiContext.insertMany(
+    chunkText(algoText, 500).map((chunkText, idx) => ({
+      studyKitId: algoKit._id,
       departmentId: csDeptId,
+      chunkText,
+      chunkIndex: idx,
+    })),
+  );
+
+  const algoCards = [
+    { front: "What is Big-O?", back: "Upper bound on growth rate of an algorithm vs input size." },
+    { front: "Binary search time?", back: "O(log n) — halving search space each step." },
+    { front: "Merge sort time?", back: "O(n log n), stable divide-and-conquer sort." },
+    { front: "Worst case quicksort?", back: "O(n²) with bad pivot choice." },
+    { front: "Hash table lookup?", back: "Expected O(1) with low load factor." },
+    { front: "BFS use case?", back: "Shortest path in unweighted graphs." },
+    { front: "Dijkstra requirement?", back: "Non-negative edge weights." },
+    { front: "DP idea?", back: "Solve overlapping subproblems and reuse results." },
+  ];
+  await Flashcard.insertMany(
+    algoCards.map((c) => ({ ...c, studyKitId: algoKit._id, userId: professorId })),
+  );
+
+  await QuizQuestion.insertMany([
+    {
+      studyKitId: algoKit._id,
+      type: "mc",
+      prompt: "Average time for merge sort?",
+      choices: ["O(n)", "O(n log n)", "O(n²)", "O(log n)"],
+      answer: "O(n log n)",
+      explanation: "Merge sort always runs in O(n log n).",
+      difficulty: "medium",
     },
     {
-      userId: studentId,
-      subject: "AI assistant gave wrong answer for sorting",
-      message: "It said bubble sort is O(n log n). Could you double-check?",
-      status: "In progress",
-      departmentId: csDeptId,
-      adminResponse:
-        "Thanks for reporting — looking into the chunking. Bubble sort is O(n^2) worst case.",
+      studyKitId: algoKit._id,
+      type: "tf",
+      prompt: "Binary search works on unsorted arrays.",
+      choices: ["True", "False"],
+      answer: "False",
+      explanation: "The array must be sorted.",
+      difficulty: "easy",
+    },
+    {
+      studyKitId: algoKit._id,
+      type: "short",
+      prompt: "What does BFS stand for?",
+      choices: [],
+      answer: "Breadth-first search",
+      difficulty: "easy",
+    },
+    {
+      studyKitId: algoKit._id,
+      type: "mc",
+      prompt: "Hash table average lookup?",
+      choices: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
+      answer: "O(1)",
+      difficulty: "medium",
+    },
+    {
+      studyKitId: algoKit._id,
+      type: "short",
+      prompt: "Dijkstra cannot handle ___ edge weights.",
+      choices: [],
+      answer: "negative",
+      difficulty: "hard",
     },
   ]);
-  console.info("[seed] 2 sample tickets");
+
+  await Summary.create({
+    studyKitId: algoKit._id,
+    content:
+      "## Algorithms overview\n\n- **Big-O** measures worst-case growth.\n- **Binary search** needs sorted data.\n- **Merge sort** is stable O(n log n).\n- **Graphs**: BFS for unweighted shortest paths; Dijkstra for weighted.",
+    language: "en",
+  });
+
+  await StudyGuide.create({
+    studyKitId: algoKit._id,
+    content:
+      "## Overview\nCore CS2 algorithms for Ethiopian university exams.\n\n## Key Concepts\nSorting, searching, graphs, dynamic programming.\n\n## Practice Questions\n1. Prove merge sort is O(n log n).\n2. When does quicksort degrade?",
+    language: "en",
+  });
+
+  const photoKit = await StudyKit.create({
+    userId: studentId,
+    title: "Photosynthesis — Biology demo",
+    description: "Typed-topic kit example",
+    sourceType: "topic",
+    language: "en",
+    isPublic: true,
+    sharedDepartmentId: csDeptId,
+    sourceMeta: { topicPrompt: "Photosynthesis for freshman biology" },
+    flashcardCount: 8,
+    quizQuestionCount: 5,
+    hasSummary: true,
+    hasGuide: true,
+  });
+
+  await AiContext.insertMany(
+    chunkText(photoText, 500).map((chunkText, idx) => ({
+      studyKitId: photoKit._id,
+      departmentId: csDeptId,
+      chunkText,
+      chunkIndex: idx,
+    })),
+  );
+
+  await Flashcard.insertMany(
+    [
+      { front: "Where does photosynthesis occur?", back: "Chloroplasts in plant cells." },
+      { front: "Products of light reactions?", back: "ATP and NADPH." },
+      { front: "Calvin cycle location?", back: "Stroma of the chloroplast." },
+      { front: "Primary pigment?", back: "Chlorophyll a." },
+    ].map((c) => ({ ...c, studyKitId: photoKit._id, userId: studentId })),
+  );
+
+  photoKit.flashcardCount = 4;
+  await photoKit.save();
+
+  console.info("[seed] 2 public demo study kits (Algorithms + Photosynthesis)");
 }
 
 async function main() {
@@ -410,14 +557,13 @@ async function main() {
   await seedCoursesForCs(users.csDept._id);
   await seedMaterials(users.professor._id, users.csDept._id);
   await seedUserData(users.student._id);
-  await seedTickets(users.student._id, users.csDept._id);
+  await seedDemoStudyKits(users.professor._id, users.student._id, users.csDept._id);
 
   await disconnectDatabase();
   console.info("[seed] done");
   console.info(`[seed] sign in:`);
   console.info(`  student   → ${DEMO_STUDENT} / ${DEMO_PASSWORD}`);
   console.info(`  professor → ${DEMO_PROFESSOR} / ${DEMO_PASSWORD}`);
-  console.info(`  admin     → ${DEMO_ADMIN} / ${DEMO_PASSWORD}`);
 }
 
 main().catch((e) => {

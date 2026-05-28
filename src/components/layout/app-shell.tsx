@@ -37,19 +37,11 @@ import type { TranslationKey } from "@/lib/i18n/strings";
 
 const NAV_TO_KEY: Record<string, TranslationKey> = {
   "/dashboard": "dashboard",
-  "/library": "library",
+  "/study": "myStudy",
+  "/library": "sharedLibrary",
   "/ai-chat": "aiAssistant",
   "/progress": "progress",
   "/billing": "billing",
-  "/admin": "adminPanel",
-  "/admin/upload": "upload",
-  "/admin/analytics": "progress",
-  "/admin/tickets": "tickets",
-  "/admin/notifications": "broadcast",
-  "/professor": "professor",
-  "/professor/upload": "upload",
-  "/professor/analytics": "progress",
-  "/professor/tickets": "tickets",
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {

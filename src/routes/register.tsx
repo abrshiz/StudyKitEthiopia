@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { isEduEtEmail } from "@/lib/validation/edu-et";
-import { describeRoleFromEmail } from "@/lib/auth/role-from-email";
 import { registerWithApi, canUseLocalSessionOnly } from "@/lib/api/auth";
 import { isApiConfigured, ApiError } from "@/lib/api/client";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { useAuth } from "@/context/auth-context";
-import { GraduationCap, AlertCircle, CheckCircle2, Shield } from "lucide-react";
+import { getPostLoginPath } from "@/lib/auth/routing";
+import { getSelectedDepartment } from "@/lib/session";
+import { GraduationCap, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Create account — StudyKit ET" }] }),
@@ -36,7 +37,6 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const ok = isEduEtEmail(email);
   const invalid = email.length > 4 && !ok;
-  const detectedRole = ok ? describeRoleFromEmail(email) : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,15 +64,16 @@ function RegisterForm() {
       if (isApiConfigured()) {
         const user = await registerWithApi({ name: name.trim(), email, password });
         signIn(user, user.department ?? null);
-        navigate({ to: "/pending-approval" });
+        const dept = user.department ?? getSelectedDepartment();
+        navigate({ to: getPostLoginPath(user, Boolean(dept)) });
       } else if (canUseLocalSessionOnly()) {
-        signIn({
+        const localUser = {
           name: name.trim(),
           email,
-          role: "student",
-          approvalStatus: "pending",
-        });
-        navigate({ to: "/pending-approval" });
+          role: "student" as const,
+        };
+        signIn(localUser);
+        navigate({ to: getPostLoginPath(localUser, Boolean(getSelectedDepartment())) });
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Registration failed.");
@@ -93,9 +94,8 @@ function RegisterForm() {
 
         <h1 className="text-2xl font-semibold tracking-tight">Register with university email</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Only <strong>.edu.et</strong> addresses. Your role (student, lecturer, or admin) is
-          detected automatically — an administrator must approve your account before you can use the
-          app.
+          Only <strong>.edu.et</strong> addresses. Your account is ready to use the moment you
+          sign up — no approval queue.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
@@ -126,16 +126,10 @@ function RegisterForm() {
                 <AlertCircle className="h-3 w-3" /> Must end in .edu.et
               </p>
             )}
-            {detectedRole && (
-              <p className="text-xs text-primary mt-1.5 flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                System will register you as: <strong>{detectedRole}</strong>
-              </p>
-            )}
             {ok && (
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-primary" /> Admin approval required after
-                sign-up
+                <CheckCircle2 className="h-3 w-3 text-primary" /> Instant access — no approval
+                queue.
               </p>
             )}
           </div>
@@ -175,7 +169,7 @@ function RegisterForm() {
           )}
 
           <Button type="submit" className="w-full mt-3" disabled={loading}>
-            {loading ? "Submitting…" : "Submit for approval"}
+            {loading ? "Creating account…" : "Create account"}
           </Button>
         </form>
 

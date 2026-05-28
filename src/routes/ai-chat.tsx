@@ -26,7 +26,6 @@ function AIChat() {
     <GuardedPage
       guard={{
         requireAuth: true,
-        requireApproved: true,
         requireStudentDepartment: true,
       }}
     >

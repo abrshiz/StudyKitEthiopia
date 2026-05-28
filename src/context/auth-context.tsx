@@ -46,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const normalized = normalizeStoredUser({
           ...fresh,
           role: fresh.role,
-          approvalStatus: fresh.approvalStatus,
         });
         setUser(normalized);
         setUserState(normalized);

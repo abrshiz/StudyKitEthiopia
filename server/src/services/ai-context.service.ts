@@ -61,16 +61,47 @@ export type RelevantChunk = {
  * Find chunks most relevant to a question. Uses Mongo's $text index when
  * possible, falls back to a case-insensitive regex pass.
  */
+/** Replace all chunks for a study kit. */
+export async function reindexStudyKitChunks(
+  studyKitId: Types.ObjectId | string,
+  chunks: string[],
+  departmentId?: Types.ObjectId | string | null,
+): Promise<number> {
+  await AiContext.deleteMany({ studyKitId });
+  if (!chunks.length) return 0;
+  const docs = chunks.map((chunkText, idx) => ({
+    studyKitId,
+    departmentId: departmentId ?? null,
+    courseCode: "",
+    chunkText,
+    chunkIndex: idx,
+  }));
+  await AiContext.insertMany(docs, { ordered: false });
+  return docs.length;
+}
+
+export async function getStudyKitChunkTexts(
+  studyKitId: string,
+  limit = 12,
+): Promise<string[]> {
+  const docs = await AiContext.find({ studyKitId })
+    .sort({ chunkIndex: 1 })
+    .limit(limit)
+    .lean();
+  return docs.map((d) => d.chunkText);
+}
+
 export async function findRelevantChunks(
   query: string,
-  filter: { departmentId?: string; courseCode?: string },
+  filter: { departmentId?: string; courseCode?: string; studyKitId?: string },
   limit = 6,
 ): Promise<RelevantChunk[]> {
-  if (!query.trim()) return [];
+  if (!query.trim() && !filter.studyKitId) return [];
 
   const base: Record<string, unknown> = {};
   if (filter.departmentId) base.departmentId = filter.departmentId;
   if (filter.courseCode) base.courseCode = filter.courseCode;
+  if (filter.studyKitId) base.studyKitId = filter.studyKitId;
 
   const textCursor = AiContext.find(
     { ...base, $text: { $search: query } },
@@ -82,6 +113,14 @@ export async function findRelevantChunks(
 
   let docs = await (textCursor as unknown as Promise<Array<AiContextDocument & { score?: number }>>);
 
+  if (docs.length === 0 && filter.studyKitId && !query.trim()) {
+    const fallback = await AiContext.find({ studyKitId: filter.studyKitId })
+      .sort({ chunkIndex: 1 })
+      .limit(limit)
+      .lean<Array<AiContextDocument & { score?: number }>>();
+    docs = fallback;
+  }
+
   if (docs.length === 0) {
     const tokens = query
       .split(/\s+/)
@@ -92,7 +131,7 @@ export async function findRelevantChunks(
       const orClauses = tokens.map((t) => ({ chunkText: new RegExp(escapeRegex(t), "i") }));
       docs = await AiContext.find({ ...base, $or: orClauses })
         .limit(limit)
-        .lean<AiContextDocument & { score?: number }>();
+        .lean<Array<AiContextDocument & { score?: number }>>();
     }
   }
 

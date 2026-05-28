@@ -17,7 +17,7 @@ import {
 import { isApiConfigured, ApiError } from "@/lib/api/client";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { getPostLoginPath } from "@/lib/auth/routing";
-import { detectRoleFromEmail, roleLabel } from "@/lib/auth/role-from-email";
+import { roleLabel } from "@/lib/auth/role-from-email";
 import { useAuth } from "@/context/auth-context";
 import { getSelectedDepartment } from "@/lib/session";
 import {
@@ -84,13 +84,12 @@ function LoginForm() {
         const dept = user.department ?? getSelectedDepartment();
         navigate({ to: getPostLoginPath(user, Boolean(dept)) });
       } else if (canUseLocalSessionOnly()) {
-        const role = detectRoleFromEmail(email);
+        const role = "student" as const;
         const localUser = {
           name: email.split("@")[0]!.replace(/\./g, " "),
           email,
           role,
           roleLabel: roleLabel(role),
-          approvalStatus: "approved" as const,
         };
         signIn(localUser);
         navigate({ to: getPostLoginPath(localUser, Boolean(getSelectedDepartment())) });

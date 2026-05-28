@@ -1,8 +1,7 @@
-import { detectRoleFromEmail, roleLabel } from "@/lib/auth/role-from-email";
+import { roleLabel } from "@/lib/auth/role-from-email";
 
 const DEPARTMENT_KEY = "studykit:department";
 const USER_KEY = "studykit:user";
-const DOWNLOADS_KEY = "studykit:downloads-today";
 
 export type StoredDepartment = {
   id: string;
@@ -10,27 +9,23 @@ export type StoredDepartment = {
   college: string;
 };
 
-export type ApprovalStatus = "pending" | "approved" | "rejected";
-
 export type StoredSubscription = {
   plan: "free" | "student" | "premium";
   expiryDate: string | null;
-  dailyDownloadsLeft: number;
+  kitsCreatedThisMonth: number;
+  monthlyResetAt: string | null;
   streakDays: number;
   lastActiveDate: string | null;
-  totalDownloads: number;
 };
 
 export type StoredUser = {
   id?: string;
   name: string;
   email: string;
-  role: "student" | "professor" | "admin";
+  role: "student" | "professor";
   roleLabel?: string;
-  approvalStatus: ApprovalStatus;
   year?: string;
   university?: string;
-  professorDepartmentId?: string;
   badges?: string[];
   subscription?: StoredSubscription;
 };
@@ -61,21 +56,19 @@ export function clearSelectedDepartment(): void {
   sessionStorage.removeItem(DEPARTMENT_KEY);
 }
 
-/** Normalize legacy session objects (missing role / approvalStatus). */
+/** Normalize legacy session objects to the current shape. */
 export function normalizeStoredUser(
   raw: Partial<StoredUser> & Pick<StoredUser, "name" | "email">,
 ): StoredUser {
-  const role = raw.role ?? detectRoleFromEmail(raw.email);
+  const role: StoredUser["role"] = raw.role === "professor" ? "professor" : "student";
   return {
     id: raw.id,
     name: raw.name,
     email: raw.email,
     role,
     roleLabel: raw.roleLabel ?? roleLabel(role),
-    approvalStatus: raw.approvalStatus ?? "approved",
     year: raw.year,
     university: raw.university,
-    professorDepartmentId: raw.professorDepartmentId,
     badges: raw.badges ?? [],
     subscription: raw.subscription,
   };
@@ -98,18 +91,6 @@ export function clearUser(): void {
 export function clearSession(): void {
   clearSelectedDepartment();
   clearUser();
-}
-
-export function getDownloadsUsedToday(): number {
-  if (typeof window === "undefined") return 0;
-  const raw = sessionStorage.getItem(DOWNLOADS_KEY);
-  return raw ? Number.parseInt(raw, 10) || 0 : 0;
-}
-
-export function incrementDownloads(): number {
-  const next = getDownloadsUsedToday() + 1;
-  sessionStorage.setItem(DOWNLOADS_KEY, String(next));
-  return next;
 }
 
 export function getUserInitials(name: string): string {

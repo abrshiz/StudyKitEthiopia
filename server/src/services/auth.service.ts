@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 import { Department, User } from "../models/index.js";
 import { HttpError } from "../utils/http.js";
 import { mapPublicUser, type PublicUser } from "../mappers/index.js";
-import { detectRoleFromEmail } from "../utils/role-from-email.js";
 
 const userPopulate = { path: "departmentId", select: "name college" };
 
@@ -28,18 +27,18 @@ export async function registerUser(input: {
   const exists = await User.exists({ email });
   if (exists) throw new HttpError(409, "Email already registered");
 
-  const role = detectRoleFromEmail(email);
   const passwordHash = await bcrypt.hash(input.password, 12);
 
   const created = await User.create({
     name: input.name.trim(),
     email,
     passwordHash,
-    role,
-    approvalStatus: "pending",
+    // Every signup is a student by default. Users can self-promote to
+    // `professor` later to publish kits into the shared library.
+    role: "student",
     phone: input.phone,
     university: inferUniversityFromEmail(email),
-    year: role === "student" ? "Year 1" : undefined,
+    year: "Year 1",
   });
 
   const populated = await User.findById(created._id).populate(userPopulate).lean();
@@ -56,13 +55,6 @@ export async function loginUser(email: string, password: string): Promise<Sessio
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) throw new HttpError(401, "Invalid email or password");
 
-  if (user.approvalStatus === "pending") {
-    throw new HttpError(403, "Your account is waiting for admin approval.");
-  }
-  if (user.approvalStatus === "rejected") {
-    throw new HttpError(403, "Your registration was not approved. Contact your university admin.");
-  }
-
   return toSessionUser(mapPublicUser(user.toObject()));
 }
 
@@ -70,8 +62,8 @@ export async function loginUser(email: string, password: string): Promise<Sessio
  * Idempotent upsert for OAuth (Microsoft) sign-ins.
  *
  * - Matches by `microsoftId` first, then by `email`.
- * - New accounts inherit the role detected from the email and start in
- *   `approvalStatus: 'pending'` so admins still gate access.
+ * - New accounts always start as `student` and are immediately usable —
+ *   there is no admin approval gate.
  */
 export async function upsertOAuthUser(input: {
   email: string;
@@ -94,15 +86,13 @@ export async function upsertOAuthUser(input: {
       await user.save();
     }
   } else {
-    const role = detectRoleFromEmail(email);
     const created = await User.create({
       name: input.name?.trim() || email.split("@")[0],
       email,
       microsoftId: input.microsoftId,
-      role,
-      approvalStatus: "pending",
+      role: "student",
       university: inferUniversityFromEmail(email),
-      year: role === "student" ? "Year 1" : undefined,
+      year: "Year 1",
     });
     const loaded = await User.findById(created._id).populate(userPopulate);
     if (!loaded) throw new HttpError(500, "Failed to load new OAuth user");
@@ -121,12 +111,12 @@ export async function getCurrentUser(idOrEmail: string): Promise<SessionUser> {
   return toSessionUser(mapPublicUser(user));
 }
 
-export async function setUserDepartment(userId: string, departmentId: string): Promise<SessionUser> {
+export async function setUserDepartment(
+  userId: string,
+  departmentId: string,
+): Promise<SessionUser> {
   const dbUser = await User.findById(userId);
   if (!dbUser) throw new HttpError(401, "User not found");
-  if (dbUser.role !== "student") {
-    throw new HttpError(400, "Only students select a study department");
-  }
 
   const dept = await Department.findById(departmentId);
   if (!dept) throw new HttpError(404, "Department not found");
@@ -140,6 +130,23 @@ export async function setUserDepartment(userId: string, departmentId: string): P
     .lean();
 
   if (!user) throw new HttpError(401, "User not found");
+  return toSessionUser(mapPublicUser(user));
+}
+
+/**
+ * Promote the current user to `professor` so their uploads land in the
+ * shared library. Idempotent — calling it on someone already a professor
+ * is a no-op.
+ */
+export async function selfPromoteToProfessor(userId: string): Promise<SessionUser> {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { role: "professor" },
+    { new: true },
+  )
+    .populate(userPopulate)
+    .lean();
+  if (!user) throw new HttpError(404, "User not found");
   return toSessionUser(mapPublicUser(user));
 }
 

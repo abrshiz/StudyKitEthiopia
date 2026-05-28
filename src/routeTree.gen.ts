@@ -12,26 +12,23 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as ProfessorRouteImport } from './routes/professor'
-import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as DepartmentsRouteImport } from './routes/departments'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AiChatRouteImport } from './routes/ai-chat'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProfessorIndexRouteImport } from './routes/professor/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as SupportNewRouteImport } from './routes/support/new'
-import { Route as ProfessorUploadRouteImport } from './routes/professor/upload'
-import { Route as ProfessorTicketsRouteImport } from './routes/professor/tickets'
-import { Route as ProfessorAnalyticsRouteImport } from './routes/professor/analytics'
-import { Route as AdminUploadRouteImport } from './routes/admin/upload'
-import { Route as AdminTicketsRouteImport } from './routes/admin/tickets'
-import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
-import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
+import { Route as StudyIndexRouteImport } from './routes/study/index'
+import { Route as StudyNewRouteImport } from './routes/study/new'
+import { Route as StudyKitIdIndexRouteImport } from './routes/study/$kitId/index'
+import { Route as StudyKitIdTestRouteImport } from './routes/study/$kitId/test'
+import { Route as StudyKitIdSummaryRouteImport } from './routes/study/$kitId/summary'
+import { Route as StudyKitIdSmartStudyRouteImport } from './routes/study/$kitId/smart-study'
+import { Route as StudyKitIdGuideRouteImport } from './routes/study/$kitId/guide'
+import { Route as StudyKitIdFlashcardsRouteImport } from './routes/study/$kitId/flashcards'
+import { Route as StudyKitIdPlayStackerRouteImport } from './routes/study/$kitId/play/stacker'
+import { Route as StudyKitIdPlayMatchRouteImport } from './routes/study/$kitId/play/match'
 
 const StatusRoute = StatusRouteImport.update({
   id: '/status',
@@ -46,16 +43,6 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfessorRoute = ProfessorRouteImport.update({
-  id: '/professor',
-  path: '/professor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PendingApprovalRoute = PendingApprovalRouteImport.update({
-  id: '/pending-approval',
-  path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -88,91 +75,83 @@ const AiChatRoute = AiChatRouteImport.update({
   path: '/ai-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfessorIndexRoute = ProfessorIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProfessorRoute,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const SupportNewRoute = SupportNewRouteImport.update({
-  id: '/support/new',
-  path: '/support/new',
+const StudyIndexRoute = StudyIndexRouteImport.update({
+  id: '/study/',
+  path: '/study/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfessorUploadRoute = ProfessorUploadRouteImport.update({
-  id: '/upload',
-  path: '/upload',
-  getParentRoute: () => ProfessorRoute,
+const StudyNewRoute = StudyNewRouteImport.update({
+  id: '/study/new',
+  path: '/study/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ProfessorTicketsRoute = ProfessorTicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => ProfessorRoute,
+const StudyKitIdIndexRoute = StudyKitIdIndexRouteImport.update({
+  id: '/study/$kitId/',
+  path: '/study/$kitId/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ProfessorAnalyticsRoute = ProfessorAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => ProfessorRoute,
+const StudyKitIdTestRoute = StudyKitIdTestRouteImport.update({
+  id: '/study/$kitId/test',
+  path: '/study/$kitId/test',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminUploadRoute = AdminUploadRouteImport.update({
-  id: '/upload',
-  path: '/upload',
-  getParentRoute: () => AdminRoute,
+const StudyKitIdSummaryRoute = StudyKitIdSummaryRouteImport.update({
+  id: '/study/$kitId/summary',
+  path: '/study/$kitId/summary',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminTicketsRoute = AdminTicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => AdminRoute,
+const StudyKitIdSmartStudyRoute = StudyKitIdSmartStudyRouteImport.update({
+  id: '/study/$kitId/smart-study',
+  path: '/study/$kitId/smart-study',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AdminRoute,
+const StudyKitIdGuideRoute = StudyKitIdGuideRouteImport.update({
+  id: '/study/$kitId/guide',
+  path: '/study/$kitId/guide',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AdminRoute,
+const StudyKitIdFlashcardsRoute = StudyKitIdFlashcardsRouteImport.update({
+  id: '/study/$kitId/flashcards',
+  path: '/study/$kitId/flashcards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyKitIdPlayStackerRoute = StudyKitIdPlayStackerRouteImport.update({
+  id: '/study/$kitId/play/stacker',
+  path: '/study/$kitId/play/stacker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyKitIdPlayMatchRoute = StudyKitIdPlayMatchRouteImport.update({
+  id: '/study/$kitId/play/match',
+  path: '/study/$kitId/play/match',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/ai-chat': typeof AiChatRoute
   '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
-  '/pending-approval': typeof PendingApprovalRoute
-  '/professor': typeof ProfessorRouteWithChildren
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/upload': typeof AdminUploadRoute
-  '/professor/analytics': typeof ProfessorAnalyticsRoute
-  '/professor/tickets': typeof ProfessorTicketsRoute
-  '/professor/upload': typeof ProfessorUploadRoute
-  '/support/new': typeof SupportNewRoute
-  '/admin/': typeof AdminIndexRoute
-  '/professor/': typeof ProfessorIndexRoute
+  '/study/new': typeof StudyNewRoute
+  '/study/': typeof StudyIndexRoute
+  '/study/$kitId/flashcards': typeof StudyKitIdFlashcardsRoute
+  '/study/$kitId/guide': typeof StudyKitIdGuideRoute
+  '/study/$kitId/smart-study': typeof StudyKitIdSmartStudyRoute
+  '/study/$kitId/summary': typeof StudyKitIdSummaryRoute
+  '/study/$kitId/test': typeof StudyKitIdTestRoute
+  '/study/$kitId/': typeof StudyKitIdIndexRoute
+  '/study/$kitId/play/match': typeof StudyKitIdPlayMatchRoute
+  '/study/$kitId/play/stacker': typeof StudyKitIdPlayStackerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,73 +161,66 @@ export interface FileRoutesByTo {
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
-  '/pending-approval': typeof PendingApprovalRoute
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/upload': typeof AdminUploadRoute
-  '/professor/analytics': typeof ProfessorAnalyticsRoute
-  '/professor/tickets': typeof ProfessorTicketsRoute
-  '/professor/upload': typeof ProfessorUploadRoute
-  '/support/new': typeof SupportNewRoute
-  '/admin': typeof AdminIndexRoute
-  '/professor': typeof ProfessorIndexRoute
+  '/study/new': typeof StudyNewRoute
+  '/study': typeof StudyIndexRoute
+  '/study/$kitId/flashcards': typeof StudyKitIdFlashcardsRoute
+  '/study/$kitId/guide': typeof StudyKitIdGuideRoute
+  '/study/$kitId/smart-study': typeof StudyKitIdSmartStudyRoute
+  '/study/$kitId/summary': typeof StudyKitIdSummaryRoute
+  '/study/$kitId/test': typeof StudyKitIdTestRoute
+  '/study/$kitId': typeof StudyKitIdIndexRoute
+  '/study/$kitId/play/match': typeof StudyKitIdPlayMatchRoute
+  '/study/$kitId/play/stacker': typeof StudyKitIdPlayStackerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/ai-chat': typeof AiChatRoute
   '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
-  '/pending-approval': typeof PendingApprovalRoute
-  '/professor': typeof ProfessorRouteWithChildren
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
-  '/admin/analytics': typeof AdminAnalyticsRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
-  '/admin/tickets': typeof AdminTicketsRoute
-  '/admin/upload': typeof AdminUploadRoute
-  '/professor/analytics': typeof ProfessorAnalyticsRoute
-  '/professor/tickets': typeof ProfessorTicketsRoute
-  '/professor/upload': typeof ProfessorUploadRoute
-  '/support/new': typeof SupportNewRoute
-  '/admin/': typeof AdminIndexRoute
-  '/professor/': typeof ProfessorIndexRoute
+  '/study/new': typeof StudyNewRoute
+  '/study/': typeof StudyIndexRoute
+  '/study/$kitId/flashcards': typeof StudyKitIdFlashcardsRoute
+  '/study/$kitId/guide': typeof StudyKitIdGuideRoute
+  '/study/$kitId/smart-study': typeof StudyKitIdSmartStudyRoute
+  '/study/$kitId/summary': typeof StudyKitIdSummaryRoute
+  '/study/$kitId/test': typeof StudyKitIdTestRoute
+  '/study/$kitId/': typeof StudyKitIdIndexRoute
+  '/study/$kitId/play/match': typeof StudyKitIdPlayMatchRoute
+  '/study/$kitId/play/stacker': typeof StudyKitIdPlayStackerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/ai-chat'
     | '/billing'
     | '/dashboard'
     | '/departments'
     | '/library'
     | '/login'
-    | '/pending-approval'
-    | '/professor'
     | '/progress'
     | '/register'
     | '/status'
-    | '/admin/analytics'
-    | '/admin/notifications'
-    | '/admin/tickets'
-    | '/admin/upload'
-    | '/professor/analytics'
-    | '/professor/tickets'
-    | '/professor/upload'
-    | '/support/new'
-    | '/admin/'
-    | '/professor/'
+    | '/study/new'
+    | '/study/'
+    | '/study/$kitId/flashcards'
+    | '/study/$kitId/guide'
+    | '/study/$kitId/smart-study'
+    | '/study/$kitId/summary'
+    | '/study/$kitId/test'
+    | '/study/$kitId/'
+    | '/study/$kitId/play/match'
+    | '/study/$kitId/play/stacker'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -258,62 +230,64 @@ export interface FileRouteTypes {
     | '/departments'
     | '/library'
     | '/login'
-    | '/pending-approval'
     | '/progress'
     | '/register'
     | '/status'
-    | '/admin/analytics'
-    | '/admin/notifications'
-    | '/admin/tickets'
-    | '/admin/upload'
-    | '/professor/analytics'
-    | '/professor/tickets'
-    | '/professor/upload'
-    | '/support/new'
-    | '/admin'
-    | '/professor'
+    | '/study/new'
+    | '/study'
+    | '/study/$kitId/flashcards'
+    | '/study/$kitId/guide'
+    | '/study/$kitId/smart-study'
+    | '/study/$kitId/summary'
+    | '/study/$kitId/test'
+    | '/study/$kitId'
+    | '/study/$kitId/play/match'
+    | '/study/$kitId/play/stacker'
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/ai-chat'
     | '/billing'
     | '/dashboard'
     | '/departments'
     | '/library'
     | '/login'
-    | '/pending-approval'
-    | '/professor'
     | '/progress'
     | '/register'
     | '/status'
-    | '/admin/analytics'
-    | '/admin/notifications'
-    | '/admin/tickets'
-    | '/admin/upload'
-    | '/professor/analytics'
-    | '/professor/tickets'
-    | '/professor/upload'
-    | '/support/new'
-    | '/admin/'
-    | '/professor/'
+    | '/study/new'
+    | '/study/'
+    | '/study/$kitId/flashcards'
+    | '/study/$kitId/guide'
+    | '/study/$kitId/smart-study'
+    | '/study/$kitId/summary'
+    | '/study/$kitId/test'
+    | '/study/$kitId/'
+    | '/study/$kitId/play/match'
+    | '/study/$kitId/play/stacker'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
   AiChatRoute: typeof AiChatRoute
   BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
   DepartmentsRoute: typeof DepartmentsRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
-  PendingApprovalRoute: typeof PendingApprovalRoute
-  ProfessorRoute: typeof ProfessorRouteWithChildren
   ProgressRoute: typeof ProgressRoute
   RegisterRoute: typeof RegisterRoute
   StatusRoute: typeof StatusRoute
-  SupportNewRoute: typeof SupportNewRoute
+  StudyNewRoute: typeof StudyNewRoute
+  StudyIndexRoute: typeof StudyIndexRoute
+  StudyKitIdFlashcardsRoute: typeof StudyKitIdFlashcardsRoute
+  StudyKitIdGuideRoute: typeof StudyKitIdGuideRoute
+  StudyKitIdSmartStudyRoute: typeof StudyKitIdSmartStudyRoute
+  StudyKitIdSummaryRoute: typeof StudyKitIdSummaryRoute
+  StudyKitIdTestRoute: typeof StudyKitIdTestRoute
+  StudyKitIdIndexRoute: typeof StudyKitIdIndexRoute
+  StudyKitIdPlayMatchRoute: typeof StudyKitIdPlayMatchRoute
+  StudyKitIdPlayStackerRoute: typeof StudyKitIdPlayStackerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -337,20 +311,6 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/professor': {
-      id: '/professor'
-      path: '/professor'
-      fullPath: '/professor'
-      preLoaderRoute: typeof ProfessorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pending-approval': {
-      id: '/pending-approval'
-      path: '/pending-approval'
-      fullPath: '/pending-approval'
-      preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -395,13 +355,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -409,130 +362,100 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/professor/': {
-      id: '/professor/'
-      path: '/'
-      fullPath: '/professor/'
-      preLoaderRoute: typeof ProfessorIndexRouteImport
-      parentRoute: typeof ProfessorRoute
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/support/new': {
-      id: '/support/new'
-      path: '/support/new'
-      fullPath: '/support/new'
-      preLoaderRoute: typeof SupportNewRouteImport
+    '/study/': {
+      id: '/study/'
+      path: '/study'
+      fullPath: '/study/'
+      preLoaderRoute: typeof StudyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/professor/upload': {
-      id: '/professor/upload'
-      path: '/upload'
-      fullPath: '/professor/upload'
-      preLoaderRoute: typeof ProfessorUploadRouteImport
-      parentRoute: typeof ProfessorRoute
+    '/study/new': {
+      id: '/study/new'
+      path: '/study/new'
+      fullPath: '/study/new'
+      preLoaderRoute: typeof StudyNewRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/professor/tickets': {
-      id: '/professor/tickets'
-      path: '/tickets'
-      fullPath: '/professor/tickets'
-      preLoaderRoute: typeof ProfessorTicketsRouteImport
-      parentRoute: typeof ProfessorRoute
+    '/study/$kitId/': {
+      id: '/study/$kitId/'
+      path: '/study/$kitId'
+      fullPath: '/study/$kitId/'
+      preLoaderRoute: typeof StudyKitIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/professor/analytics': {
-      id: '/professor/analytics'
-      path: '/analytics'
-      fullPath: '/professor/analytics'
-      preLoaderRoute: typeof ProfessorAnalyticsRouteImport
-      parentRoute: typeof ProfessorRoute
+    '/study/$kitId/test': {
+      id: '/study/$kitId/test'
+      path: '/study/$kitId/test'
+      fullPath: '/study/$kitId/test'
+      preLoaderRoute: typeof StudyKitIdTestRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/upload': {
-      id: '/admin/upload'
-      path: '/upload'
-      fullPath: '/admin/upload'
-      preLoaderRoute: typeof AdminUploadRouteImport
-      parentRoute: typeof AdminRoute
+    '/study/$kitId/summary': {
+      id: '/study/$kitId/summary'
+      path: '/study/$kitId/summary'
+      fullPath: '/study/$kitId/summary'
+      preLoaderRoute: typeof StudyKitIdSummaryRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/tickets': {
-      id: '/admin/tickets'
-      path: '/tickets'
-      fullPath: '/admin/tickets'
-      preLoaderRoute: typeof AdminTicketsRouteImport
-      parentRoute: typeof AdminRoute
+    '/study/$kitId/smart-study': {
+      id: '/study/$kitId/smart-study'
+      path: '/study/$kitId/smart-study'
+      fullPath: '/study/$kitId/smart-study'
+      preLoaderRoute: typeof StudyKitIdSmartStudyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/notifications': {
-      id: '/admin/notifications'
-      path: '/notifications'
-      fullPath: '/admin/notifications'
-      preLoaderRoute: typeof AdminNotificationsRouteImport
-      parentRoute: typeof AdminRoute
+    '/study/$kitId/guide': {
+      id: '/study/$kitId/guide'
+      path: '/study/$kitId/guide'
+      fullPath: '/study/$kitId/guide'
+      preLoaderRoute: typeof StudyKitIdGuideRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/analytics': {
-      id: '/admin/analytics'
-      path: '/analytics'
-      fullPath: '/admin/analytics'
-      preLoaderRoute: typeof AdminAnalyticsRouteImport
-      parentRoute: typeof AdminRoute
+    '/study/$kitId/flashcards': {
+      id: '/study/$kitId/flashcards'
+      path: '/study/$kitId/flashcards'
+      fullPath: '/study/$kitId/flashcards'
+      preLoaderRoute: typeof StudyKitIdFlashcardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study/$kitId/play/stacker': {
+      id: '/study/$kitId/play/stacker'
+      path: '/study/$kitId/play/stacker'
+      fullPath: '/study/$kitId/play/stacker'
+      preLoaderRoute: typeof StudyKitIdPlayStackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study/$kitId/play/match': {
+      id: '/study/$kitId/play/match'
+      path: '/study/$kitId/play/match'
+      fullPath: '/study/$kitId/play/match'
+      preLoaderRoute: typeof StudyKitIdPlayMatchRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
-  AdminNotificationsRoute: typeof AdminNotificationsRoute
-  AdminTicketsRoute: typeof AdminTicketsRoute
-  AdminUploadRoute: typeof AdminUploadRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAnalyticsRoute: AdminAnalyticsRoute,
-  AdminNotificationsRoute: AdminNotificationsRoute,
-  AdminTicketsRoute: AdminTicketsRoute,
-  AdminUploadRoute: AdminUploadRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
-interface ProfessorRouteChildren {
-  ProfessorAnalyticsRoute: typeof ProfessorAnalyticsRoute
-  ProfessorTicketsRoute: typeof ProfessorTicketsRoute
-  ProfessorUploadRoute: typeof ProfessorUploadRoute
-  ProfessorIndexRoute: typeof ProfessorIndexRoute
-}
-
-const ProfessorRouteChildren: ProfessorRouteChildren = {
-  ProfessorAnalyticsRoute: ProfessorAnalyticsRoute,
-  ProfessorTicketsRoute: ProfessorTicketsRoute,
-  ProfessorUploadRoute: ProfessorUploadRoute,
-  ProfessorIndexRoute: ProfessorIndexRoute,
-}
-
-const ProfessorRouteWithChildren = ProfessorRoute._addFileChildren(
-  ProfessorRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
   AiChatRoute: AiChatRoute,
   BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
   DepartmentsRoute: DepartmentsRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
-  PendingApprovalRoute: PendingApprovalRoute,
-  ProfessorRoute: ProfessorRouteWithChildren,
   ProgressRoute: ProgressRoute,
   RegisterRoute: RegisterRoute,
   StatusRoute: StatusRoute,
-  SupportNewRoute: SupportNewRoute,
+  StudyNewRoute: StudyNewRoute,
+  StudyIndexRoute: StudyIndexRoute,
+  StudyKitIdFlashcardsRoute: StudyKitIdFlashcardsRoute,
+  StudyKitIdGuideRoute: StudyKitIdGuideRoute,
+  StudyKitIdSmartStudyRoute: StudyKitIdSmartStudyRoute,
+  StudyKitIdSummaryRoute: StudyKitIdSummaryRoute,
+  StudyKitIdTestRoute: StudyKitIdTestRoute,
+  StudyKitIdIndexRoute: StudyKitIdIndexRoute,
+  StudyKitIdPlayMatchRoute: StudyKitIdPlayMatchRoute,
+  StudyKitIdPlayStackerRoute: StudyKitIdPlayStackerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -8,10 +8,7 @@ import {
   listMaterials,
 } from "../services/material.service.js";
 import { materialUpload } from "../services/upload.service.js";
-import {
-  requireApprovedUser,
-  requireProfessorOfDepartment,
-} from "../middleware/auth.middleware.js";
+import { requireRole, requireUser } from "../middleware/auth.middleware.js";
 import { AuditLog } from "../models/index.js";
 
 export const materialsRouter = Router();
@@ -46,8 +43,16 @@ const createSchema = z.object({
   departmentId: z.string().min(1),
 });
 
+/**
+ * Material upload — open to any authenticated user with the `professor`
+ * role (users self-promote via `POST /auth/become-professor`).
+ *
+ * This stays around as the "shared library" producer; private study kits
+ * are created via the StudyKit endpoints (see phase 2).
+ */
 materialsRouter.post(
   "/",
+  requireRole("professor"),
   materialUpload.single("file"),
   asyncHandler(async (req, res) => {
     if (!req.file) throw new HttpError(400, "Missing file");
@@ -61,7 +66,7 @@ materialsRouter.post(
     });
     if (!parsed.success) throw new HttpError(400, parsed.error.message);
 
-    const user = requireProfessorOfDepartment(req, parsed.data.departmentId);
+    const user = requireUser(req);
 
     const result = await createMaterial({
       ...parsed.data,
@@ -93,8 +98,13 @@ materialsRouter.delete(
     const id = String(req.params.id ?? "");
     if (!id) throw new HttpError(400, "Material id required");
 
+    const user = requireUser(req);
     const existing = await getMaterial(id);
-    const user = requireProfessorOfDepartment(req, existing.departmentId);
+
+    // Only the uploader can delete their material (no admin role any more).
+    if (existing.uploadedById && existing.uploadedById !== user._id) {
+      throw new HttpError(403, "You can only delete materials you uploaded");
+    }
 
     await deleteMaterial(id);
     await AuditLog.create({
@@ -108,6 +118,3 @@ materialsRouter.delete(
     res.status(204).end();
   }),
 );
-
-// Reference to silence unused-imports if some build tools complain.
-void requireApprovedUser;

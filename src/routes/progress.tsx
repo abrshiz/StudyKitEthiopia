@@ -22,8 +22,6 @@ function ProgressRoute() {
     <GuardedPage
       guard={{
         requireAuth: true,
-        requireApproved: true,
-        allowedRoles: ["student"],
         requireStudentDepartment: true,
       }}
     >

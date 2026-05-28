@@ -10,12 +10,12 @@ export type Lang = "en" | "am";
 export const strings = {
   appName: { en: "StudyKit ET", am: "ስተዲኪት ET" },
   dashboard: { en: "Dashboard", am: "ዳሽቦርድ" },
+  myStudy: { en: "My Study", am: "የእኔ ጥናት" },
+  sharedLibrary: { en: "Shared Library", am: "የጋራ ቤተ-መጻሕፍት" },
   library: { en: "Library", am: "ቤተ-መጻሕፍት" },
   aiAssistant: { en: "AI Assistant", am: "AI ረዳት" },
   progress: { en: "Progress", am: "እድገት" },
   billing: { en: "Billing", am: "ክፍያ" },
-  admin: { en: "Admin", am: "አስተዳዳሪ" },
-  adminPanel: { en: "Admin panel", am: "የአስተዳዳሪ ፓነል" },
   professor: { en: "Professor", am: "መምህር" },
   student: { en: "Student", am: "ተማሪ" },
 
@@ -25,10 +25,6 @@ export const strings = {
   email: { en: "Email", am: "ኢሜይል" },
   password: { en: "Password", am: "የይለፍ ቃል" },
   continue: { en: "Continue", am: "ቀጥል" },
-
-  pendingApproval: { en: "Pending admin approval", am: "የአስተዳዳሪ ፈቃድ በመጠበቅ ላይ" },
-  approved: { en: "Approved", am: "ፀደቀ" },
-  rejected: { en: "Rejected", am: "ተሰረዘ" },
 
   materials: { en: "Materials", am: "ቁሳቁሶች" },
   download: { en: "Download", am: "አውርድ" },
@@ -44,14 +40,9 @@ export const strings = {
   silver: { en: "Silver", am: "ብር" },
   gold: { en: "Gold", am: "ወርቅ" },
 
-  tickets: { en: "Tickets", am: "ጥቆማዎች" },
-  newTicket: { en: "New ticket", am: "አዲስ ጥቆማ" },
-  reply: { en: "Reply", am: "መልስ" },
-  close: { en: "Close", am: "ዝጋ" },
-
   notifications: { en: "Notifications", am: "ማሳወቂያዎች" },
-  broadcast: { en: "Broadcast", am: "ስርጭት" },
   send: { en: "Send", am: "ላክ" },
+  close: { en: "Close", am: "ዝጋ" },
 
   department: { en: "Department", am: "ዘርፍ" },
   course: { en: "Course", am: "ኮርስ" },
@@ -71,8 +62,7 @@ export const strings = {
 
   expired: { en: "Expired", am: "ጊዜው አልፏል" },
   daily: { en: "Daily", am: "ቀን-በ-ቀን" },
-  downloadsLeft: { en: "Downloads left today", am: "የዛሬ ቀሪ ውርዶች" },
-  watermarked: { en: "Watermarked", am: "ምልክት ተለጥፎበታል" },
+  kitsLeft: { en: "Study kits left this month", am: "የዚህ ወር ቀሪ ኪቶች" },
 
   english: { en: "English", am: "እንግሊዝኛ" },
   amharic: { en: "Amharic", am: "አማርኛ" },

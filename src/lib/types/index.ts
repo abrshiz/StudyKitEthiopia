@@ -87,48 +87,6 @@ export type SearchResults = {
   departments: Department[];
 };
 
-export type AdminKpi = { label: string; value: string; delta: string };
-export type AdminUpload = { title: string; department: string; uploader: string };
-export type AdminTopMaterial = { title: string; downloads: number };
-export type SupportTicket = {
-  id: string;
-  subject: string;
-  user: string;
-  status: "Open" | "In progress" | "Resolved";
-  time: string;
-};
-
-export type TicketRecord = {
-  id: string;
-  subject: string;
-  message: string;
-  status: "Open" | "In progress" | "Resolved";
-  user: { id: string; name?: string; email?: string };
-  department: { id: string; name?: string } | null;
-  materialId: string | null;
-  assignedToId: string | null;
-  adminResponse: string;
-  createdAt: string | null;
-  resolvedAt: string | null;
-  time: string;
-};
-
-export type AdminAnalytics = {
-  usersByRole: { role: string; count: number }[];
-  downloadsPerDay: { day: string; count: number }[];
-  popularMaterials: { id: string; title: string; downloads: number }[];
-  totals: { users: number; materials: number; tickets: number; downloads: number };
-};
-export type AuditEntry = [string, string, string, string];
-
-export type AdminDashboard = {
-  kpis: AdminKpi[];
-  recentUploads: AdminUpload[];
-  topMaterials: AdminTopMaterial[];
-  tickets: SupportTicket[];
-  auditLog: AuditEntry[];
-};
-
 export type NavItem = {
   to: string;
   label: string;

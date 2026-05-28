@@ -3,7 +3,6 @@ import type {
   DepartmentDocument,
   MaterialDocument,
   PlanDocument,
-  SupportTicketDocument,
   UserDocument,
 } from "../models/index.js";
 import { roleLabel } from "../utils/role-from-email.js";
@@ -48,6 +47,7 @@ export function mapMaterial(doc: MaterialDocument) {
     expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString() : null,
     expired: doc.expiryDate ? new Date(doc.expiryDate).getTime() < Date.now() : false,
     departmentId: doc.departmentId ? String(doc.departmentId) : undefined,
+    uploadedById: doc.uploadedById ? String(doc.uploadedById) : undefined,
   };
 }
 
@@ -84,23 +84,21 @@ export function mapChatMessage(doc: ChatMessageDocument) {
 export type PublicSubscription = {
   plan: "free" | "student" | "premium";
   expiryDate: string | null;
-  dailyDownloadsLeft: number;
+  kitsCreatedThisMonth: number;
+  monthlyResetAt: string | null;
   streakDays: number;
   lastActiveDate: string | null;
-  totalDownloads: number;
 };
 
 export type PublicUser = {
   id: string;
   name: string;
   email: string;
-  role: "student" | "professor" | "admin";
+  role: "student" | "professor";
   roleLabel: string;
-  approvalStatus: "pending" | "approved" | "rejected";
   university?: string;
   year?: string;
   department?: { id: string; name: string; college: string };
-  professorDepartmentId?: string;
   badges: string[];
   subscription: PublicSubscription;
 };
@@ -110,15 +108,13 @@ export function mapPublicUser(doc: {
   name: string;
   email: string;
   role: string;
-  approvalStatus?: UserDocument["approvalStatus"];
   university?: string | null;
   year?: string | null;
   departmentId?: null | { _id: unknown; name: string; college: string } | unknown;
-  professorDepartmentId?: unknown;
   badges?: string[];
   subscription?: Partial<UserDocument["subscription"]> | null;
 }): PublicUser {
-  const role = doc.role as "student" | "professor" | "admin";
+  const role = (doc.role === "professor" ? "professor" : "student") as "student" | "professor";
   const sub = doc.subscription ?? {};
   const result: PublicUser = {
     id: doc._id ? String(doc._id) : "",
@@ -126,19 +122,21 @@ export function mapPublicUser(doc: {
     email: doc.email,
     role,
     roleLabel: roleLabel(role),
-    approvalStatus: doc.approvalStatus ?? "pending",
     university: doc.university ?? undefined,
     year: doc.year ?? undefined,
     badges: Array.isArray(doc.badges) ? doc.badges : [],
     subscription: {
       plan: (sub.plan as PublicSubscription["plan"]) ?? "free",
       expiryDate: sub.expiryDate ? new Date(sub.expiryDate as Date).toISOString() : null,
-      dailyDownloadsLeft: typeof sub.dailyDownloadsLeft === "number" ? sub.dailyDownloadsLeft : 5,
+      kitsCreatedThisMonth:
+        typeof sub.kitsCreatedThisMonth === "number" ? sub.kitsCreatedThisMonth : 0,
+      monthlyResetAt: sub.monthlyResetAt
+        ? new Date(sub.monthlyResetAt as Date).toISOString()
+        : null,
       streakDays: typeof sub.streakDays === "number" ? sub.streakDays : 0,
       lastActiveDate: sub.lastActiveDate
         ? new Date(sub.lastActiveDate as Date).toISOString()
         : null,
-      totalDownloads: typeof sub.totalDownloads === "number" ? sub.totalDownloads : 0,
     },
   };
 
@@ -152,46 +150,5 @@ export function mapPublicUser(doc: {
     };
   }
 
-  if (doc.professorDepartmentId) {
-    result.professorDepartmentId = String(doc.professorDepartmentId);
-  }
-
   return result;
-}
-
-export function mapSupportTicket(
-  doc: SupportTicketDocument & {
-    userId?: { _id: unknown; name?: string; email?: string } | unknown;
-    departmentId?: { _id: unknown; name?: string } | unknown;
-  },
-) {
-  const populatedUser =
-    doc.userId && typeof doc.userId === "object" && "email" in doc.userId
-      ? (doc.userId as { _id: unknown; name?: string; email?: string })
-      : null;
-  const populatedDept =
-    doc.departmentId && typeof doc.departmentId === "object" && "name" in doc.departmentId
-      ? (doc.departmentId as { _id: unknown; name?: string })
-      : null;
-
-  return {
-    id: toId(doc),
-    subject: doc.subject,
-    message: doc.message ?? "",
-    status: doc.status,
-    user: populatedUser
-      ? { id: String(populatedUser._id), name: populatedUser.name, email: populatedUser.email }
-      : { id: doc.userId ? String(doc.userId) : "" },
-    department: populatedDept
-      ? { id: String(populatedDept._id), name: populatedDept.name }
-      : doc.departmentId
-        ? { id: String(doc.departmentId) }
-        : null,
-    materialId: doc.materialId ? String(doc.materialId) : null,
-    assignedToId: doc.assignedToId ? String(doc.assignedToId) : null,
-    adminResponse: doc.adminResponse ?? "",
-    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : null,
-    resolvedAt: doc.resolvedAt ? new Date(doc.resolvedAt).toISOString() : null,
-    time: formatRelativeTime(doc.createdAt),
-  };
 }

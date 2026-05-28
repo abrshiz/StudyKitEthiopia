@@ -4,16 +4,14 @@ import { User } from "../models/index.js";
 import { HttpError } from "../utils/http.js";
 import { verifySessionToken } from "../services/jwt.service.js";
 
-export type AppRole = "student" | "professor" | "admin";
+export type AppRole = "student" | "professor";
 
 export type RequestUser = {
   _id: string;
   email: string;
   name: string;
   role: AppRole;
-  approvalStatus: "pending" | "approved" | "rejected";
   departmentId: string | null;
-  professorDepartmentId: string | null;
 };
 
 export type RequestWithUser = Request & { currentUser?: RequestUser };
@@ -36,12 +34,8 @@ export async function loadUser(req: Request, _res: Response, next: NextFunction)
       _id: String(user._id),
       email: user.email,
       name: user.name,
-      role: user.role as AppRole,
-      approvalStatus: (user.approvalStatus ?? "pending") as RequestUser["approvalStatus"],
+      role: (user.role === "professor" ? "professor" : "student") as AppRole,
       departmentId: user.departmentId ? String(user.departmentId) : null,
-      professorDepartmentId: user.professorDepartmentId
-        ? String(user.professorDepartmentId)
-        : null,
     };
     next();
   } catch {
@@ -65,54 +59,19 @@ export function requireUser(req: Request): RequestUser {
   return user;
 }
 
-export function requireApprovedUser(req: Request): RequestUser {
-  const user = requireUser(req);
-  if (user.approvalStatus === "pending") {
-    throw new HttpError(403, "Account pending admin approval");
-  }
-  if (user.approvalStatus === "rejected") {
-    throw new HttpError(403, "Account not approved");
-  }
-  return user;
-}
-
-export function requireAdmin(req: Request): RequestUser {
-  const user = requireUser(req);
-  if (user.role !== "admin") throw new HttpError(403, "Admin access required");
-  return user;
-}
+/**
+ * Approval gating was removed in the Thea pivot — every authenticated user is
+ * "approved" by definition. The alias stays so existing call sites keep
+ * working without churn.
+ */
+export const requireApprovedUser = requireUser;
 
 export function requireRole(...roles: AppRole[]) {
   return (req: Request): RequestUser => {
-    const user = requireApprovedUser(req);
+    const user = requireUser(req);
     if (!roles.includes(user.role)) {
       throw new HttpError(403, `Requires role: ${roles.join(", ")}`);
     }
     return user;
   };
-}
-
-/**
- * Returns the current user if they are an admin (any department) or a
- * professor scoped to the given department. Throws otherwise.
- */
-export function requireProfessorOfDepartment(
-  req: Request,
-  departmentId: string | null | undefined,
-): RequestUser {
-  const user = requireApprovedUser(req);
-  if (user.role === "admin") return user;
-  if (user.role !== "professor") {
-    throw new HttpError(403, "Professor or admin access required");
-  }
-  if (!user.professorDepartmentId) {
-    throw new HttpError(403, "Professor is not assigned to a department");
-  }
-  if (!departmentId) {
-    throw new HttpError(400, "Department is required");
-  }
-  if (user.professorDepartmentId !== String(departmentId)) {
-    throw new HttpError(403, "Professor can only act on their assigned department");
-  }
-  return user;
 }
