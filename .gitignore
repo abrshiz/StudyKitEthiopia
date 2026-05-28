@@ -18,6 +18,10 @@ dist-ssr
 .env
 server/.env
 
+# Local upload storage
+server/uploads/*
+!server/uploads/.gitkeep
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

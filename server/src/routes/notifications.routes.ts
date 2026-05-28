@@ -1,11 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../utils/http.js";
 import { requireUser } from "../middleware/user-context.js";
-import {
-  listNotifications,
-  markAllRead,
-  markRead,
-} from "../services/notification.service.js";
+import { listNotifications, markAllRead, markRead } from "../services/notification.service.js";
 
 export const notificationsRouter = Router();
 

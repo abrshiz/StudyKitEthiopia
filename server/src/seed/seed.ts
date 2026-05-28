@@ -7,23 +7,29 @@ import bcrypt from "bcryptjs";
 import { Types } from "mongoose";
 import { connectDatabase, disconnectDatabase } from "../config/db.js";
 import {
+  AiContext,
   Badge,
   ChatMessage,
   CourseProgress,
+  Course,
   Department,
   Material,
   Notification,
   Plan,
+  SupportTicket,
   User,
   UserBadge,
   UserProgress,
 } from "../models/index.js";
 import { detectRoleFromEmail } from "../utils/role-from-email.js";
+import { chunkText } from "../services/ai-context.service.js";
 
 const DEMO_PASSWORD = "StudyKit123!";
 const DEMO_STUDENT = "student@aau.edu.et";
 const DEMO_ADMIN = "admin@aau.edu.et";
-const DEMO_PROFESSOR = "professor@aau.edu.et";
+const DEMO_PROFESSOR = "prof.cs@aau.edu.et";
+
+const FOUR_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 4;
 
 const colleges = [
   "Engineering & Technology",
@@ -41,6 +47,7 @@ const colleges = [
 const departmentNames = [
   "Software Engineering",
   "Computer Science",
+  "Information Technology",
   "Medicine (MD)",
   "Pharmacy",
   "Accounting",
@@ -57,7 +64,7 @@ const departmentNames = [
 ];
 
 function pickCollege(name: string): string {
-  if (/Engineering|Architecture|Civil|Electrical|Software|Computer/.test(name))
+  if (/Engineering|Architecture|Civil|Electrical|Software|Computer|Information Technology/.test(name))
     return colleges[0];
   if (/Medicine|Pharmacy|Nursing|Health/.test(name)) return colleges[1];
   if (/Mathematics|Natural/.test(name)) return colleges[2];
@@ -85,9 +92,7 @@ async function seedDepartments() {
 }
 
 async function seedPlans() {
-  const count = await Plan.countDocuments();
-  if (count > 0) return;
-
+  await Plan.deleteMany({});
   await Plan.insertMany([
     {
       slug: "free",
@@ -100,58 +105,85 @@ async function seedPlans() {
     {
       slug: "student",
       name: "Student",
-      price: 199,
+      price: 99,
       period: "month",
       popular: true,
-      features: ["50 downloads/day", "Unlimited AI chat", "All departments", "Offline mode"],
+      features: [
+        "50 downloads/day",
+        "Unlimited AI chat",
+        "All departments",
+        "Watermarked PDFs",
+      ],
       sortOrder: 1,
     },
     {
-      slug: "semester",
-      name: "Semester",
-      price: 899,
-      period: "semester",
-      features: ["Everything in Student", "Priority AI", "Past exams archive"],
+      slug: "premium",
+      name: "Premium",
+      price: 299,
+      period: "month",
+      features: [
+        "Everything in Student",
+        "Priority AI",
+        "Past exams archive",
+        "Email support",
+      ],
       sortOrder: 2,
     },
   ]);
-  console.info("[seed] plans");
+  console.info("[seed] plans (free / student / premium)");
 }
 
 async function seedBadges() {
-  const count = await Badge.countDocuments();
-  if (count > 0) return;
-
+  await Badge.deleteMany({});
   await Badge.insertMany([
     { slug: "streak-7", name: "7-Day Streak", icon: "🔥", description: "7 days in a row" },
     { slug: "first-download", name: "First Download", icon: "📥", description: "First material" },
     { slug: "quiz-master", name: "Quiz Master", icon: "🧠", description: "10 quizzes" },
     { slug: "night-owl", name: "Night Owl", icon: "🌙", description: "Study after 10 PM" },
     { slug: "streak-30", name: "30-Day Streak", icon: "⚡", description: "30 day streak" },
-    { slug: "materials-100", name: "100 Materials", icon: "📚", description: "100 materials opened" },
+    {
+      slug: "materials-100",
+      name: "100 Materials",
+      icon: "📚",
+      description: "100 materials opened",
+    },
+    { slug: "downloader-bronze", name: "Bronze Scholar", icon: "🥉", description: "10 downloads" },
+    { slug: "downloader-silver", name: "Silver Scholar", icon: "🥈", description: "50 downloads" },
+    { slug: "downloader-gold", name: "Gold Scholar", icon: "🥇", description: "100 downloads" },
   ]);
   console.info("[seed] badges");
 }
 
 async function seedUsers() {
-  await User.updateMany(
-    { approvalStatus: { $exists: false } },
-    { $set: { approvalStatus: "approved", approvedAt: new Date() } },
-  );
+  const csDept = await Department.findOne({ name: "Computer Science" });
+  const hash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
-  if (await User.exists({ email: DEMO_STUDENT })) {
+  const existingStudent = await User.findOne({ email: DEMO_STUDENT });
+  const existingProfessor = await User.findOne({ email: DEMO_PROFESSOR });
+  const existingAdmin = await User.findOne({ email: DEMO_ADMIN });
+  if (existingStudent && existingProfessor && existingAdmin) {
     await User.updateMany(
       { email: { $in: [DEMO_STUDENT, DEMO_PROFESSOR, DEMO_ADMIN] } },
       { $set: { approvalStatus: "approved", approvedAt: new Date() } },
     );
-    console.info("[seed] demo users already exist — ensured approved");
-    const student = await User.findOne({ email: DEMO_STUDENT });
-    const professor = await User.findOne({ email: DEMO_PROFESSOR });
-    return student && professor ? { student, professor } : undefined;
+    if (csDept) {
+      await User.updateOne(
+        { email: DEMO_PROFESSOR },
+        { $set: { professorDepartmentId: csDept._id, role: "professor" } },
+      );
+      await User.updateOne(
+        { email: DEMO_STUDENT },
+        { $set: { departmentId: csDept._id } },
+      );
+    }
+    console.info("[seed] demo users already exist — ensured approved + scoped");
+    return {
+      student: existingStudent,
+      professor: await User.findOne({ email: DEMO_PROFESSOR }),
+      admin: existingAdmin,
+      csDept,
+    };
   }
-
-  const swDept = await Department.findOne({ name: "Software Engineering" });
-  const hash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
   const [student, professor, admin] = await User.insertMany([
     {
@@ -163,23 +195,25 @@ async function seedUsers() {
       approvedAt: new Date(),
       university: "Addis Ababa University",
       year: "Year 2",
-      departmentId: swDept?._id ?? null,
+      departmentId: csDept?._id ?? null,
+      subscription: { plan: "free", dailyDownloadsLeft: 5 },
     },
     {
-      name: "Demo Professor",
+      name: "Prof. Tewodros (CS)",
       email: DEMO_PROFESSOR,
       passwordHash: hash,
-      role: detectRoleFromEmail(DEMO_PROFESSOR),
+      role: "professor",
       approvalStatus: "approved",
       approvedAt: new Date(),
       university: "Addis Ababa University",
-      departmentId: swDept?._id ?? null,
+      departmentId: csDept?._id ?? null,
+      professorDepartmentId: csDept?._id ?? null,
     },
     {
-      name: "Demo Admin",
+      name: "StudyKit Admin",
       email: DEMO_ADMIN,
       passwordHash: hash,
-      role: detectRoleFromEmail(DEMO_ADMIN),
+      role: "admin",
       approvalStatus: "approved",
       approvedAt: new Date(),
       university: "Addis Ababa University",
@@ -187,94 +221,108 @@ async function seedUsers() {
   ]);
 
   console.info("[seed] demo users (password: StudyKit123!)");
-  return { student, professor, admin, swDept };
+  return { student, professor, admin, csDept };
 }
 
-async function seedMaterials(uploaderId: Types.ObjectId) {
+async function seedCoursesForCs(csDeptId: Types.ObjectId) {
+  if ((await Course.countDocuments({ departmentId: csDeptId })) > 0) return;
+  await Course.insertMany([
+    { departmentId: csDeptId, code: "CSE 201", title: "Algorithms", year: 2, semester: "Semester I" },
+    { departmentId: csDeptId, code: "CSE 202", title: "Data Structures", year: 2, semester: "Semester I" },
+    { departmentId: csDeptId, code: "CSE 303", title: "Operating Systems", year: 3, semester: "Semester I" },
+  ]);
+}
+
+async function seedMaterials(uploaderId: Types.ObjectId, csDeptId: Types.ObjectId) {
   if ((await Material.countDocuments()) > 0) {
     console.info("[seed] materials already exist — skipped");
     return;
   }
 
-  const departments = await Department.find({
-    name: { $in: ["Software Engineering", "Computer Science", "Medicine (MD)"] },
-  }).lean();
+  const swDept = await Department.findOne({ name: "Software Engineering" });
+  const itDept = await Department.findOne({ name: "Information Technology" });
 
-  const byName = Object.fromEntries(departments.map((d) => [d.name, d._id]));
-  const swId = byName["Software Engineering"];
-  const csId = byName["Computer Science"];
-  const medId = byName["Medicine (MD)"];
+  const now = Date.now();
+  const expiry = new Date(now + FOUR_MONTHS_MS);
 
-  if (!swId || !csId || !medId) {
-    console.warn("[seed] departments missing — skip materials");
-    return;
-  }
+  const sample = await Material.create({
+    title: "Introduction to Algorithms — Lecture Notes",
+    type: "PDF",
+    course: "Algorithms",
+    courseCode: "CSE 201",
+    semester: "Year 2 · Semester I",
+    sizeLabel: "4.2 MB",
+    departmentId: csDeptId,
+    uploadedById: uploaderId,
+    downloadCount: 8,
+    expiryDate: expiry,
+  });
 
-  const rows = [
+  // Synthetic AI context so the chat works without an actual PDF.
+  const seedText = [
+    "Big-O notation describes the upper bound of an algorithm's runtime relative to its input size.",
+    "Binary search runs in O(log n) time because each comparison halves the search space.",
+    "Merge sort runs in O(n log n) time and is a stable, divide-and-conquer sorting algorithm.",
+    "Quicksort runs in O(n log n) on average but O(n^2) in the worst case when the pivot is poorly chosen.",
+    "A hash table provides expected O(1) lookup, insert, and delete operations when the load factor stays low.",
+    "Graphs can be traversed using breadth-first search (BFS) for shortest paths in unweighted graphs and depth-first search (DFS) for cycle detection and topological sorting.",
+    "Dijkstra's algorithm computes shortest paths from a source node in a graph with non-negative edge weights.",
+    "Dynamic programming solves problems by combining solutions to overlapping subproblems and is commonly used for the longest common subsequence and knapsack problems.",
+  ].join("\n");
+
+  const chunks = chunkText(seedText, 500);
+  await AiContext.insertMany(
+    chunks.map((chunkText, idx) => ({
+      materialId: sample._id,
+      departmentId: csDeptId,
+      courseCode: "CSE 201",
+      chunkText,
+      chunkIndex: idx,
+    })),
+  );
+
+  const more = [
     {
-      title: "Introduction to Algorithms — Lecture Notes",
-      type: "PDF",
-      course: "CSE 201",
-      semester: "Year 2 · Semester I",
-      sizeLabel: "4.2 MB",
-      departmentId: swId,
-      downloadCount: 128,
+      title: "Operating Systems — Slides",
+      type: "PPT",
+      course: "Operating Systems",
+      courseCode: "CSE 303",
+      semester: "Year 3 · Semester I",
+      sizeLabel: "8.4 MB",
+      departmentId: csDeptId,
+      downloadCount: 12,
     },
     {
-      title: "Data Structures — Past Exam 2024",
+      title: "IT Networks — Past Exam 2024",
       type: "PDF",
-      course: "CSE 202",
-      semester: "Year 2 · Semester I",
+      course: "Computer Networks",
+      courseCode: "ITT 305",
+      semester: "Year 3 · Semester II",
       sizeLabel: "1.1 MB",
-      departmentId: swId,
-      downloadCount: 89,
+      departmentId: itDept?._id ?? csDeptId,
+      downloadCount: 5,
     },
     {
       title: "Software Engineering — Project Guidelines",
       type: "DOC",
-      course: "SWE 301",
+      course: "Software Engineering",
+      courseCode: "SWE 301",
       semester: "Year 3 · Semester II",
       sizeLabel: "620 KB",
-      departmentId: swId,
-      downloadCount: 45,
+      departmentId: swDept?._id ?? csDeptId,
+      downloadCount: 3,
     },
-    {
-      title: "Operating Systems — Slides",
-      type: "PPT",
-      course: "CSE 303",
-      semester: "Year 3 · Semester I",
-      sizeLabel: "8.4 MB",
-      departmentId: csId,
-      downloadCount: 201,
-    },
-    {
-      title: "Database Systems — Final Exam",
-      type: "PDF",
-      course: "CSE 304",
-      semester: "Year 3 · Semester II",
-      sizeLabel: "2.3 MB",
-      departmentId: csId,
-      downloadCount: 156,
-    },
-    {
-      title: "Anatomy I — Study Guide",
-      type: "PDF",
-      course: "MED 101",
-      semester: "Year 1 · Semester I",
-      sizeLabel: "6.7 MB",
-      departmentId: medId,
-      downloadCount: 72,
-    },
-  ] as const;
+  ];
 
   await Material.insertMany(
-    rows.map((r) => ({
+    more.map((r) => ({
       ...r,
       uploadedById: uploaderId,
-      fileUrl: "",
+      expiryDate: expiry,
     })),
   );
-  console.info(`[seed] ${rows.length} materials`);
+
+  console.info(`[seed] 1 indexed PDF + ${more.length} more materials`);
 }
 
 async function seedUserData(studentId: Types.ObjectId) {
@@ -295,7 +343,7 @@ async function seedUserData(studentId: Types.ObjectId) {
   await CourseProgress.insertMany([
     { userId: studentId, course: "CSE 201", percent: 72, hoursLabel: "14h" },
     { userId: studentId, course: "CSE 202", percent: 45, hoursLabel: "8h" },
-    { userId: studentId, course: "SWE 301", percent: 30, hoursLabel: "5h" },
+    { userId: studentId, course: "CSE 303", percent: 30, hoursLabel: "5h" },
   ]);
 
   const badges = await Badge.find({ slug: { $in: ["streak-7", "first-download"] } }).lean();
@@ -309,7 +357,7 @@ async function seedUserData(studentId: Types.ObjectId) {
     {
       userId: studentId,
       title: "New material uploaded",
-      body: "Data Structures — Past Exam 2024 is now in your library.",
+      body: "Algorithms lecture notes are now in your library.",
       type: "material",
       read: false,
     },
@@ -319,13 +367,6 @@ async function seedUserData(studentId: Types.ObjectId) {
       body: "You are on a 5-day study streak. Keep it up!",
       type: "system",
       read: false,
-    },
-    {
-      userId: studentId,
-      title: "Student plan",
-      body: "Upgrade to unlock unlimited AI chat and offline mode.",
-      type: "billing",
-      read: true,
     },
   ]);
 
@@ -345,6 +386,33 @@ async function seedUserData(studentId: Types.ObjectId) {
   console.info("[seed] progress, notifications, chat for demo student");
 }
 
+async function seedTickets(studentId: Types.ObjectId, csDeptId: Types.ObjectId) {
+  if ((await SupportTicket.countDocuments()) > 0) {
+    console.info("[seed] tickets already exist — skipped");
+    return;
+  }
+
+  await SupportTicket.insertMany([
+    {
+      userId: studentId,
+      subject: "Cannot open CSE 202 past exam",
+      message: "The download keeps failing on my laptop. Mobile works fine.",
+      status: "Open",
+      departmentId: csDeptId,
+    },
+    {
+      userId: studentId,
+      subject: "AI assistant gave wrong answer for sorting",
+      message: "It said bubble sort is O(n log n). Could you double-check?",
+      status: "In progress",
+      departmentId: csDeptId,
+      adminResponse:
+        "Thanks for reporting — looking into the chunking. Bubble sort is O(n^2) worst case.",
+    },
+  ]);
+  console.info("[seed] 2 sample tickets");
+}
+
 async function main() {
   await connectDatabase();
   await seedDepartments();
@@ -352,14 +420,23 @@ async function main() {
   await seedBadges();
 
   const users = await seedUsers();
-  if (users?.professor && users.student) {
-    await seedMaterials(users.professor._id);
-    await seedUserData(users.student._id);
+  if (!users?.professor || !users.student || !users.csDept) {
+    console.warn("[seed] missing demo users — aborting material/progress seeding");
+    await disconnectDatabase();
+    return;
   }
+
+  await seedCoursesForCs(users.csDept._id);
+  await seedMaterials(users.professor._id, users.csDept._id);
+  await seedUserData(users.student._id);
+  await seedTickets(users.student._id, users.csDept._id);
 
   await disconnectDatabase();
   console.info("[seed] done");
-  console.info(`[seed] sign in: ${DEMO_STUDENT} / ${DEMO_PASSWORD}`);
+  console.info(`[seed] sign in:`);
+  console.info(`  student   → ${DEMO_STUDENT} / ${DEMO_PASSWORD}`);
+  console.info(`  professor → ${DEMO_PROFESSOR} / ${DEMO_PASSWORD}`);
+  console.info(`  admin     → ${DEMO_ADMIN} / ${DEMO_PASSWORD}`);
 }
 
 main().catch((e) => {

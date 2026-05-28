@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppPreferencesProvider } from "@/context/app-preferences";
 import { AuthProvider } from "@/context/auth-context";
+import { LanguageProvider } from "@/lib/i18n/context";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
@@ -124,12 +125,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppPreferencesProvider>
-          <Outlet />
-          <Toaster richColors position="top-center" />
-        </AppPreferencesProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppPreferencesProvider>
+            <Outlet />
+            <Toaster richColors position="top-center" />
+          </AppPreferencesProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

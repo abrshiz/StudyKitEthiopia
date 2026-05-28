@@ -4,8 +4,12 @@ import { mapDepartment, mapMaterial } from "../mappers/index.js";
 export async function globalSearch(q: string) {
   const regex = new RegExp(q.trim(), "i");
   const [materials, departments] = await Promise.all([
-    Material.find({ $or: [{ title: regex }, { course: regex }] }).limit(6).lean(),
-    Department.find({ $or: [{ name: regex }, { college: regex }] }).limit(6).lean(),
+    Material.find({ $or: [{ title: regex }, { course: regex }] })
+      .limit(6)
+      .lean(),
+    Department.find({ $or: [{ name: regex }, { college: regex }] })
+      .limit(6)
+      .lean(),
   ]);
 
   return {

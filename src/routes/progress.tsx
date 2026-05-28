@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { DataBoundary } from "@/components/shared/api-state";
@@ -7,6 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { useProgress } from "@/hooks/use-progress";
+import { StreakHeatmap } from "@/components/features/streak-heatmap";
+import { pingStreak } from "@/lib/api/streak";
+import { isApiConfigured } from "@/lib/api/client";
 
 export const Route = createFileRoute("/progress")({
   head: () => ({ meta: [{ title: "Progress — StudyKit ET" }] }),
@@ -32,6 +36,13 @@ const days = ["M", "T", "W", "T", "F", "S", "S"];
 
 function ProgressPage() {
   const { data, isLoading, isError, error, refetch } = useProgress();
+
+  useEffect(() => {
+    if (!isApiConfigured()) return;
+    void pingStreak().catch(() => {
+      /* streak ping is best-effort */
+    });
+  }, []);
 
   return (
     <AppShell>
@@ -64,7 +75,10 @@ function ProgressPage() {
                     {data.weeklyActivity.map((v, i) => (
                       <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full">
                         <div className="w-full bg-primary/15 rounded-md flex items-end flex-1">
-                          <div className="w-full bg-primary rounded-md" style={{ height: `${v}%` }} />
+                          <div
+                            className="w-full bg-primary rounded-md"
+                            style={{ height: `${v}%` }}
+                          />
                         </div>
                         <span className="text-[11px] text-muted-foreground">{days[i]}</span>
                       </div>
@@ -88,6 +102,8 @@ function ProgressPage() {
                   </div>
                 </Card>
               </div>
+
+              <StreakHeatmap days={180} />
 
               <Card className="p-5">
                 <h2 className="font-semibold">Course completion</h2>

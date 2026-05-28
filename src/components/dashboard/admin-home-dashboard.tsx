@@ -1,6 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/layout/page-header";
-import { ApiErrorState, ApiLoading, ApiNotConfigured, ApiEmpty, DataBoundary } from "@/components/shared/api-state";
+import {
+  ApiErrorState,
+  ApiLoading,
+  ApiNotConfigured,
+  ApiEmpty,
+  DataBoundary,
+} from "@/components/shared/api-state";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +32,9 @@ export function AdminHomeDashboard() {
         <AlertCircle className="h-10 w-10 mx-auto text-destructive mb-3" />
         <h3 className="font-semibold">Admin access required</h3>
         <p className="text-sm text-muted-foreground mt-2">
-          Signed in as <strong>{user?.roleLabel ?? user?.role}</strong>. Use an admin university email
-          (e.g. <code className="text-xs bg-muted px-1 rounded">admin@aau.edu.et</code>) or sign out and
-          sign in again.
+          Signed in as <strong>{user?.roleLabel ?? user?.role}</strong>. Use an admin university
+          email (e.g. <code className="text-xs bg-muted px-1 rounded">admin@aau.edu.et</code>) or
+          sign out and sign in again.
         </p>
         <Link to="/login" className="inline-block mt-4">
           <Button variant="outline">Switch account</Button>
@@ -86,7 +92,7 @@ export function AdminHomeDashboard() {
 
             <DataBoundary
               resource="Pending users"
-              isLoading={pending.isLoading}
+              isLoading={pending.isLoading || pending.isFetching}
               isError={pending.isError}
               error={pending.error}
               isEmpty={(pending.data?.length ?? 0) === 0}
@@ -95,7 +101,7 @@ export function AdminHomeDashboard() {
               onRetry={() => pending.refetch()}
             >
               <div className="mt-4 space-y-2">
-                {pending.data!.map((u) => (
+                {(pending.data ?? []).map((u) => (
                   <div
                     key={u.id}
                     className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-background p-3"

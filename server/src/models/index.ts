@@ -1,5 +1,6 @@
 export { User, type UserDocument } from "./User.js";
 export { Department, type DepartmentDocument } from "./Department.js";
+export { Course, type CourseDocument } from "./Course.js";
 export { Material, type MaterialDocument } from "./Material.js";
 export { Plan, type PlanDocument } from "./Plan.js";
 export { Notification, type NotificationDocument } from "./Notification.js";
@@ -10,3 +11,4 @@ export { UserProgress, type UserProgressDocument } from "./UserProgress.js";
 export { CourseProgress, type CourseProgressDocument } from "./CourseProgress.js";
 export { SupportTicket, type SupportTicketDocument } from "./SupportTicket.js";
 export { AuditLog, type AuditLogDocument } from "./AuditLog.js";
+export { AiContext, type AiContextDocument } from "./AiContext.js";

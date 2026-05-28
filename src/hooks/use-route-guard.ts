@@ -23,6 +23,7 @@ export type RouteGuardOptions = {
 export function useRouteGuard(options: RouteGuardOptions): boolean {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const allowedRolesKey = options.allowedRoles?.join(",") ?? "";
 
   useEffect(() => {
     const user = getUser();
@@ -79,7 +80,8 @@ export function useRouteGuard(options: RouteGuardOptions): boolean {
     options.requireAuth,
     options.requireApproved,
     options.requireStudentDepartment,
-    options.allowedRoles?.join(","),
+    options.allowedRoles,
+    allowedRolesKey,
   ]);
 
   return ready;

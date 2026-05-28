@@ -13,8 +13,8 @@ export function ApiNotConfigured({ resource }: { resource: string }) {
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
         {resource} will load from your backend once{" "}
         <code className="text-xs bg-muted px-1.5 py-0.5 rounded">VITE_API_URL</code> is set in{" "}
-        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">.env</code>. No sample data is shown
-        in the app.
+        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">.env</code>. No sample data is
+        shown in the app.
       </p>
     </Card>
   );
@@ -29,13 +29,7 @@ export function ApiLoading({ label = "Loading" }: { label?: string }) {
   );
 }
 
-export function ApiErrorState({
-  error,
-  onRetry,
-}: {
-  error: unknown;
-  onRetry?: () => void;
-}) {
+export function ApiErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   const message =
     error instanceof ApiError
       ? error.status === 0

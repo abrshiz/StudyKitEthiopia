@@ -1,10 +1,14 @@
 import {
-  LayoutDashboard,
-  Library,
-  MessageSquare,
-  TrendingUp,
+  BarChart3,
   CreditCard,
+  GraduationCap,
+  LayoutDashboard,
+  LifeBuoy,
+  Library,
+  Megaphone,
+  MessageSquare,
   Shield,
+  TrendingUp,
   Upload,
 } from "lucide-react";
 import type { NavItem } from "@/lib/types";
@@ -16,21 +20,24 @@ const studentNav: NavItem[] = [
   { to: "/ai-chat", label: "AI Assistant", icon: MessageSquare },
   { to: "/progress", label: "Progress", icon: TrendingUp },
   { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/support/new", label: "Support", icon: LifeBuoy },
 ];
 
 const professorNav: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/library", label: "Course library", icon: Library },
-  { to: "/ai-chat", label: "AI tools", icon: MessageSquare },
-  { to: "/admin", label: "Upload materials", icon: Upload },
-  { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/professor", label: "My department", icon: GraduationCap },
+  { to: "/professor/upload", label: "Upload", icon: Upload },
+  { to: "/professor/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/professor/tickets", label: "Tickets", icon: MessageSquare },
 ];
 
 const adminNav: NavItem[] = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/admin", label: "Admin panel", icon: Shield },
-  { to: "/library", label: "All materials", icon: Library },
-  { to: "/billing", label: "Billing", icon: CreditCard },
+  { to: "/admin/upload", label: "Upload", icon: Upload },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/admin/tickets", label: "Tickets", icon: MessageSquare },
+  { to: "/admin/notifications", label: "Broadcast", icon: Megaphone },
 ];
 
 export function getNavigationForRole(role: StoredUser["role"]): NavItem[] {

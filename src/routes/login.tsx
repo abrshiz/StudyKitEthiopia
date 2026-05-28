@@ -6,15 +6,30 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect } from "react";
 import { isEduEtEmail } from "@/lib/validation/edu-et";
-import { loginWithApi, canUseLocalSessionOnly } from "@/lib/api/auth";
+import {
+  canUseLocalSessionOnly,
+  checkMicrosoftStatus,
+  loginWithApi,
+  microsoftSignInUrl,
+} from "@/lib/api/auth";
 import { isApiConfigured, ApiError } from "@/lib/api/client";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { getPostLoginPath } from "@/lib/auth/routing";
 import { detectRoleFromEmail, roleLabel } from "@/lib/auth/role-from-email";
 import { useAuth } from "@/context/auth-context";
 import { getSelectedDepartment } from "@/lib/session";
-import { GraduationCap, Mail, Phone, Lock, ShieldCheck, AlertCircle } from "lucide-react";
+import {
+  GraduationCap,
+  Mail,
+  Phone,
+  Lock,
+  ShieldCheck,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — StudyKit ET" }] }),
@@ -34,10 +49,19 @@ function LoginForm() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [mfa, setMfa] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [microsoftReady, setMicrosoftReady] = useState(false);
   const invalid = email.length > 4 && !isEduEtEmail(email);
+
+  useEffect(() => {
+    if (!isApiConfigured()) return;
+    void checkMicrosoftStatus()
+      .then((s) => setMicrosoftReady(s.configured))
+      .catch(() => setMicrosoftReady(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -94,8 +118,8 @@ function LoginForm() {
         <div>
           <h2 className="text-3xl font-semibold leading-tight">Welcome back.</h2>
           <p className="mt-3 text-primary-foreground/85 max-w-sm">
-            Sign in with your university email. Session is kept in your browser — no tokens stored in
-            the app.
+            Sign in with your university email. Session is kept in your browser — no tokens stored
+            in the app.
           </p>
         </div>
         <p className="text-xs text-primary-foreground/65">
@@ -150,15 +174,23 @@ function LoginForm() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
                       id="pw"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-9"
+                      className="pl-9 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={8}
                       autoComplete="current-password"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-accent/60 transition"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
               </TabsContent>
@@ -182,6 +214,25 @@ function LoginForm() {
             </Button>
           </form>
 
+          <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            or
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full gap-2"
+            disabled={!microsoftReady}
+            onClick={() => {
+              window.location.href = microsoftSignInUrl();
+            }}
+          >
+            <MicrosoftLogo />
+            {microsoftReady ? "Continue with Microsoft" : "Microsoft sign-in not configured"}
+          </Button>
+
           <div className="mt-5 text-sm text-center text-muted-foreground">
             New here?{" "}
             <Link to="/register" className="text-primary font-medium">
@@ -191,5 +242,16 @@ function LoginForm() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function MicrosoftLogo() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <rect x="1" y="1" width="10" height="10" fill="#F25022" />
+      <rect x="12" y="1" width="10" height="10" fill="#7FBA00" />
+      <rect x="1" y="12" width="10" height="10" fill="#00A4EF" />
+      <rect x="12" y="12" width="10" height="10" fill="#FFB900" />
+    </svg>
   );
 }

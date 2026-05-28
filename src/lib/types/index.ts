@@ -12,10 +12,26 @@ export type StudyMaterial = {
   title: string;
   type: "PDF" | "PPT" | "DOC" | string;
   course: string;
+  courseCode?: string;
+  courseId?: string;
   semester: string;
   size: string;
   updated: string;
   downloads?: number;
+  expiryDate?: string | null;
+  expired?: boolean;
+  departmentId?: string;
+};
+
+export type Course = {
+  id: string;
+  departmentId: string;
+  code: string;
+  title: string;
+  year: number;
+  semester: string;
+  credits: number;
+  active: boolean;
 };
 
 export type SubscriptionPlan = {
@@ -80,6 +96,28 @@ export type SupportTicket = {
   user: string;
   status: "Open" | "In progress" | "Resolved";
   time: string;
+};
+
+export type TicketRecord = {
+  id: string;
+  subject: string;
+  message: string;
+  status: "Open" | "In progress" | "Resolved";
+  user: { id: string; name?: string; email?: string };
+  department: { id: string; name?: string } | null;
+  materialId: string | null;
+  assignedToId: string | null;
+  adminResponse: string;
+  createdAt: string | null;
+  resolvedAt: string | null;
+  time: string;
+};
+
+export type AdminAnalytics = {
+  usersByRole: { role: string; count: number }[];
+  downloadsPerDay: { day: string; count: number }[];
+  popularMaterials: { id: string; title: string; downloads: number }[];
+  totals: { users: number; materials: number; tickets: number; downloads: number };
 };
 export type AuditEntry = [string, string, string, string];
 

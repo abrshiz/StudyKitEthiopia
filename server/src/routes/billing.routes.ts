@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler, HttpError } from "../utils/http.js";
 import { createCheckout, listPlans } from "../services/billing.service.js";
+import { requireApprovedUser } from "../middleware/auth.middleware.js";
 
 export const billingRouter = Router();
 
@@ -22,6 +23,12 @@ billingRouter.post(
   asyncHandler(async (req, res) => {
     const body = checkoutSchema.safeParse(req.body);
     if (!body.success) throw new HttpError(400, body.error.message);
-    res.json(await createCheckout(body.data));
+    const user = requireApprovedUser(req);
+    res.json(
+      await createCheckout({
+        ...body.data,
+        user: { _id: user._id, email: user.email, name: user.name },
+      }),
+    );
   }),
 );

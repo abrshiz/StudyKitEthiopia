@@ -9,7 +9,9 @@ export function MaterialIcon({ type }: { type: string }) {
     DOC: "bg-blue-500/10 text-blue-600",
   };
   return (
-    <div className={`h-10 w-10 rounded-lg grid place-items-center shrink-0 ${color[type] ?? "bg-muted"}`}>
+    <div
+      className={`h-10 w-10 rounded-lg grid place-items-center shrink-0 ${color[type] ?? "bg-muted"}`}
+    >
       <Icon className="h-5 w-5" />
     </div>
   );

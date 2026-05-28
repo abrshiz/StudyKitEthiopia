@@ -57,7 +57,11 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search pages, materials, departments…" value={query} onValueChange={setQuery} />
+      <CommandInput
+        placeholder="Search pages, materials, departments…"
+        value={query}
+        onValueChange={setQuery}
+      />
       <CommandList>
         <CommandEmpty>
           {isApiConfigured() && query.length >= 2

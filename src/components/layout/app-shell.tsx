@@ -22,13 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GlobalSearch } from "@/components/features/global-search";
 import { NotificationsMenu } from "@/components/features/notifications-menu";
 import { SetupHint } from "@/components/shared/api-state";
@@ -38,10 +32,29 @@ import { getUserInitials } from "@/lib/session";
 import { getNavigationForRole } from "@/config/navigation";
 import { resolveUserRole } from "@/lib/auth/role-from-email";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/strings";
+
+const NAV_TO_KEY: Record<string, TranslationKey> = {
+  "/dashboard": "dashboard",
+  "/library": "library",
+  "/ai-chat": "aiAssistant",
+  "/progress": "progress",
+  "/billing": "billing",
+  "/admin": "adminPanel",
+  "/admin/upload": "upload",
+  "/admin/analytics": "progress",
+  "/admin/tickets": "tickets",
+  "/admin/notifications": "broadcast",
+  "/professor": "professor",
+  "/professor/upload": "upload",
+  "/professor/analytics": "progress",
+  "/professor/tickets": "tickets",
+};
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { dark, setDark, lowData, setLowData, offline, setOffline, lang, setLang } =
-    useAppPreferences();
+  const { dark, setDark, lowData, setLowData, offline, setOffline } = useAppPreferences();
+  const { lang, toggle: toggleLang, t } = useT();
   const { user, department, signOut } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -49,9 +62,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const navItems = user ? getNavigationForRole(resolveUserRole(user)) : [];
 
+  const translateLabel = (to: string, fallback: string): string => {
+    const key = NAV_TO_KEY[to];
+    return key ? t(key) : fallback;
+  };
+
   const avatarLabel = user
     ? getUserInitials(user.name)
-    : department?.name.slice(0, 2).toUpperCase() ?? "SK";
+    : (department?.name.slice(0, 2).toUpperCase() ?? "SK");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -82,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   )}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {item.label}
+                  {translateLabel(item.to, item.label)}
                 </Link>
               );
             })}
@@ -126,7 +144,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           to={item.to}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-accent"
                         >
-                          <item.icon className="h-4 w-4" /> {item.label}
+                          <item.icon className="h-4 w-4" /> {translateLabel(item.to, item.label)}
                         </Link>
                       );
                     })}
@@ -149,10 +167,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLang(lang === "EN" ? "አማ" : "EN")}
+                onClick={toggleLang}
                 className="gap-1.5"
+                title={t(lang === "en" ? "amharic" : "english")}
               >
-                <Languages className="h-4 w-4" /> {lang}
+                <Languages className="h-4 w-4" /> {lang === "en" ? "EN" : "አማ"}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setDark(!dark)}>
                 {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -197,7 +216,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         navigate({ to: "/login" });
                       }}
                     >
-                      Sign out
+                      {t("signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -205,7 +224,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Link to="/login">
                   <Button size="sm" variant="outline" className="gap-1.5">
                     <LogIn className="h-4 w-4" />
-                    Sign in
+                    {t("signIn")}
                   </Button>
                 </Link>
               )}
@@ -230,7 +249,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <item.icon className="h-5 w-5" />
-                {item.label}
+                {translateLabel(item.to, item.label)}
               </Link>
             );
           })}
@@ -242,12 +261,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function Brand() {
   return (
-    <Link to="/dashboard" className="flex items-center gap-2.5 px-5 h-16 border-b border-sidebar-border">
+    <Link
+      to="/dashboard"
+      className="flex items-center gap-2.5 px-5 h-16 border-b border-sidebar-border"
+    >
       <div className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground shadow-sm">
         <GraduationCap className="h-5 w-5" />
       </div>
       <div className="leading-tight">
-        <div className="font-semibold tracking-tight text-earth dark:text-foreground">StudyKit ET</div>
+        <div className="font-semibold tracking-tight text-earth dark:text-foreground">
+          StudyKit ET
+        </div>
         <div className="text-[10px] text-muted-foreground">University Edition</div>
       </div>
     </Link>

@@ -12,19 +12,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { useAuth } from "@/context/auth-context";
 import { useMaterials, useMaterial } from "@/hooks/use-materials";
-import { sendChatMessage } from "@/lib/api/chat";
+import { askAiStream } from "@/lib/api/chat";
+import { downloadMaterial } from "@/lib/api/materials";
 import { isApiConfigured, ApiError } from "@/lib/api/client";
 import type { StudyMaterial } from "@/lib/types";
 import type { ChatMessage } from "@/lib/types";
-import {
-  Search,
-  Filter,
-  Download,
-  Eye,
-  ShieldAlert,
-  ArrowLeft,
-  FileText,
-} from "lucide-react";
+import { Search, Filter, Download, Eye, ShieldAlert, ArrowLeft, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/library")({
@@ -70,7 +63,10 @@ function LibraryPage() {
   return (
     <AppShell>
       <div className="space-y-5">
-        <PageHeader title="Content library" description="Materials from your database for this department.">
+        <PageHeader
+          title="Content library"
+          description="Materials from your database for this department."
+        >
           <Badge variant="secondary" className="gap-1.5">
             <ShieldAlert className="h-3 w-3" /> Watermarked downloads
           </Badge>
@@ -79,7 +75,12 @@ function LibraryPage() {
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search materials…" className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Input
+              placeholder="Search materials…"
+              className="pl-9"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
           </div>
           <Button variant="outline" size="sm" className="gap-1.5">
             <Filter className="h-4 w-4" /> Filters
@@ -127,7 +128,18 @@ function LibraryPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => toast.info("Download uses your API file URL when connected")}
+                    onClick={async () => {
+                      if (!isApiConfigured()) {
+                        toast.error("Connect API for downloads");
+                        return;
+                      }
+                      try {
+                        await downloadMaterial(m.id, m.title);
+                        toast.success("Watermarked PDF downloaded");
+                      } catch (err) {
+                        toast.error(err instanceof ApiError ? err.message : "Download failed");
+                      }
+                    }}
                   >
                     <Download className="h-3.5 w-3.5" />
                   </Button>
@@ -161,11 +173,28 @@ function DocumentViewer({
     }
     const text = docInput.trim();
     setDocInput("");
-    setDocMsgs((m) => [...m, { role: "user", text }]);
+    const pendingId = `pending-${Date.now()}`;
+    setDocMsgs((m) => [
+      ...m,
+      { role: "user", text },
+      { id: pendingId, role: "ai", text: "" },
+    ]);
     setSending(true);
     try {
-      const reply = await sendChatMessage({ message: text, materialId: item.id });
-      setDocMsgs((m) => [...m, reply]);
+      await askAiStream(
+        { question: text, materialId: item.id, courseCode: item.courseCode },
+        (event) => {
+          if (event.type === "token") {
+            setDocMsgs((m) =>
+              m.map((msg) =>
+                msg.id === pendingId ? { ...msg, text: msg.text + event.text } : msg,
+              ),
+            );
+          } else if (event.type === "error") {
+            toast.error(event.message);
+          }
+        },
+      );
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "AI request failed");
     } finally {
@@ -195,7 +224,9 @@ function DocumentViewer({
           <p className="text-sm font-medium mb-2">Ask about this document</p>
           <div className="flex-1 overflow-auto space-y-2">
             {docMsgs.length === 0 && (
-              <p className="text-xs text-muted-foreground">Questions go to POST /chat with materialId</p>
+              <p className="text-xs text-muted-foreground">
+                Questions go to POST /chat with materialId
+              </p>
             )}
             {docMsgs.map((m, i) => (
               <ChatBubble key={i} role={m.role}>

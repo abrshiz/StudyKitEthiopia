@@ -1,8 +1,10 @@
-import { getUser } from "@/lib/session";
-
 /**
  * HTTP client for your database API.
  * Set VITE_API_URL in .env (e.g. http://localhost:4000/api).
+ *
+ * Auth is JWT-in-cookie: every request uses `credentials: 'include'` so the
+ * `sk_at` cookie set by /api/auth/login (or the Microsoft OAuth callback) is
+ * sent automatically. The legacy `X-User-Email` header is gone.
  */
 export class ApiError extends Error {
   constructor(
@@ -30,13 +32,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   const headers = new Headers(init?.headers);
-  if (init?.body && !headers.has("Content-Type")) {
+  const isFormData =
+    typeof FormData !== "undefined" && init?.body instanceof FormData;
+  if (init?.body && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
-  }
-
-  const user = getUser();
-  if (user?.email) {
-    headers.set("X-User-Email", user.email);
   }
 
   const response = await fetch(`${base}${path.startsWith("/") ? path : `/${path}`}`, {

@@ -27,7 +27,9 @@ export function ProfessorDashboard() {
         <Card className="p-4">
           <Upload className="h-5 w-5 text-primary mb-2" />
           <div className="font-medium text-sm">Upload materials</div>
-          <p className="text-xs text-muted-foreground mt-1">PDF, slides, past exams for your courses</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            PDF, slides, past exams for your courses
+          </p>
           <Link to="/library">
             <Button size="sm" className="mt-3 w-full">
               Open library
@@ -37,7 +39,9 @@ export function ProfessorDashboard() {
         <Card className="p-4">
           <MessageSquare className="h-5 w-5 text-primary mb-2" />
           <div className="font-medium text-sm">AI course assistant</div>
-          <p className="text-xs text-muted-foreground mt-1">Answer student questions grounded in your files</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Answer student questions grounded in your files
+          </p>
           <Link to="/ai-chat">
             <Button size="sm" variant="outline" className="mt-3 w-full">
               Open AI tools

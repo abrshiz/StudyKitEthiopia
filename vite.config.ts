@@ -10,10 +10,7 @@ export default defineConfig(({ mode }) => {
     env.VITE_API_URL = "http://localhost:4000/api";
   }
   const envDefine = Object.fromEntries(
-    Object.entries(env).map(([key, value]) => [
-      `import.meta.env.${key}`,
-      JSON.stringify(value),
-    ]),
+    Object.entries(env).map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)]),
   );
 
   return {

@@ -1,9 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  approveUserApi,
-  fetchPendingUsers,
-  rejectUserApi,
-} from "@/lib/api/admin-users";
+import { approveUserApi, fetchPendingUsers, rejectUserApi } from "@/lib/api/admin-users";
 import { useApiQuery } from "./use-api-query";
 
 export function usePendingUsers(enabled = true) {

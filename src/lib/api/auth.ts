@@ -1,8 +1,9 @@
-import { apiFetch, isApiConfigured } from "./client";
-import type { StoredDepartment, StoredUser } from "@/lib/session";
+import { apiFetch, getApiBaseUrl, isApiConfigured } from "./client";
+import type { StoredDepartment, StoredSubscription, StoredUser } from "@/lib/session";
 
 export type AuthUser = StoredUser & {
   department?: StoredDepartment;
+  subscription?: StoredSubscription;
 };
 
 export type LoginPayload = { email: string; password: string };
@@ -13,7 +14,6 @@ export type RegisterPayload = {
   phone?: string;
 };
 
-/** When API is live, credentials are verified server-side. No JWT stored in the client. */
 export async function loginWithApi(payload: LoginPayload): Promise<AuthUser> {
   return apiFetch<AuthUser>("/auth/login", {
     method: "POST",
@@ -28,6 +28,10 @@ export async function registerWithApi(payload: RegisterPayload): Promise<AuthUse
   });
 }
 
+export async function logoutFromApi(): Promise<void> {
+  return apiFetch<void>("/auth/logout", { method: "POST" });
+}
+
 export async function saveDepartmentToApi(departmentId: string): Promise<AuthUser> {
   return apiFetch<AuthUser>("/auth/department", {
     method: "PATCH",
@@ -35,9 +39,18 @@ export async function saveDepartmentToApi(departmentId: string): Promise<AuthUse
   });
 }
 
-/** Refresh role & approval from MongoDB (fixes stale sessionStorage). */
 export async function fetchCurrentUser(): Promise<AuthUser> {
   return apiFetch<AuthUser>("/auth/me");
+}
+
+export async function checkMicrosoftStatus(): Promise<{ configured: boolean }> {
+  return apiFetch<{ configured: boolean }>("/auth/microsoft/status");
+}
+
+/** Full-page redirect to the Microsoft authorize URL on the server. */
+export function microsoftSignInUrl(): string {
+  const base = getApiBaseUrl();
+  return `${base}/auth/microsoft`;
 }
 
 export function canUseLocalSessionOnly(): boolean {

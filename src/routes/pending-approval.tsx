@@ -55,8 +55,8 @@ function PendingApproval() {
         </div>
         <h1 className="mt-5 text-2xl font-semibold">Waiting for approval</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Your university email was verified. An administrator must approve your account before you can
-          sign in.
+          Your university email was verified. An administrator must approve your account before you
+          can sign in.
         </p>
 
         <div className="mt-6 text-left space-y-2 rounded-lg border p-4 bg-muted/30 text-sm">

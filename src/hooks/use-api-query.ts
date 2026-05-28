@@ -11,7 +11,10 @@ export function useApiQuery<T>(
     queryFn,
     enabled: isApiConfigured() && (options?.enabled ?? true),
     retry: (count, error) => {
-      if (error instanceof ApiError && (error.status === 0 || error.status === 403 || error.status === 404))
+      if (
+        error instanceof ApiError &&
+        (error.status === 0 || error.status === 403 || error.status === 404)
+      )
         return false;
       return count < 2;
     },

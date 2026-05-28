@@ -19,9 +19,7 @@ export const Route = createFileRoute("/departments")({
 
 function Departments() {
   return (
-    <GuardedPage
-      guard={{ requireAuth: true, requireApproved: true, allowedRoles: ["student"] }}
-    >
+    <GuardedPage guard={{ requireAuth: true, requireApproved: true, allowedRoles: ["student"] }}>
       <DepartmentsPage />
     </GuardedPage>
   );

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GuardedPage } from "@/components/auth/guarded-page";
 import { useAuth } from "@/context/auth-context";
-import { fetchChatHistory, sendChatMessage } from "@/lib/api/chat";
+import { askAiStream, fetchChatHistory } from "@/lib/api/chat";
 import { isApiConfigured, ApiError } from "@/lib/api/client";
 import type { ChatMessage } from "@/lib/types";
 import { Sparkles, Send, Paperclip } from "lucide-react";
@@ -57,12 +57,32 @@ function AIChatPage() {
       return;
     }
     setInput("");
-    setLocalMsgs((m) => [...m, { role: "user", text }]);
+    const pendingId = `pending-${Date.now()}`;
+    setLocalMsgs((m) => [
+      ...m,
+      { role: "user", text },
+      { id: pendingId, role: "ai", text: "" },
+    ]);
     setSending(true);
     try {
-      const reply = await sendChatMessage({ message: text });
-      setLocalMsgs((m) => [...m, reply]);
-      history.refetch();
+      await askAiStream(
+        {
+          question: text,
+          department: department?.name,
+        },
+        (event) => {
+          if (event.type === "token") {
+            setLocalMsgs((m) =>
+              m.map((msg) =>
+                msg.id === pendingId ? { ...msg, text: msg.text + event.text } : msg,
+              ),
+            );
+          } else if (event.type === "error") {
+            toast.error(event.message);
+          }
+        },
+      );
+      void history.refetch();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Failed to send");
     } finally {

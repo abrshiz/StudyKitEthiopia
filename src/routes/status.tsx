@@ -38,7 +38,10 @@ function StatusPage() {
   return (
     <div className="min-h-screen bg-muted/40 py-10 px-5">
       <div className="max-w-2xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8"
+        >
           <ArrowLeft className="h-4 w-4" /> Home
         </Link>
 
@@ -62,7 +65,9 @@ function StatusPage() {
               <Circle className="h-6 w-6 text-muted-foreground" />
             )}
             <div>
-              <div className="font-medium">{configured ? "API URL configured" : "API not configured"}</div>
+              <div className="font-medium">
+                {configured ? "API URL configured" : "API not configured"}
+              </div>
               <code className="text-xs text-muted-foreground block mt-1">
                 {configured ? base : "Set VITE_API_URL in .env"}
               </code>
@@ -80,10 +85,15 @@ function StatusPage() {
               )}
               <div>
                 <div className="font-medium">
-                  {health.isSuccess ? "API reachable" : health.isLoading ? "Checking API…" : "API not reachable"}
+                  {health.isSuccess
+                    ? "API reachable"
+                    : health.isLoading
+                      ? "Checking API…"
+                      : "API not reachable"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Run <code className="bg-muted px-1 rounded">npm run dev:api</code> and MongoDB, then refresh.
+                  Run <code className="bg-muted px-1 rounded">npm run dev:api</code> and MongoDB,
+                  then refresh.
                 </p>
               </div>
             </div>
@@ -108,11 +118,12 @@ function StatusPage() {
 
         <Card className="mt-4 p-6 text-sm text-muted-foreground space-y-2">
           <p>
-            <strong className="text-foreground">Session flow (no JWT in the client):</strong> sign in → pick
-            department → use app. Guards only check sessionStorage, not tokens.
+            <strong className="text-foreground">Session flow (no JWT in the client):</strong> sign
+            in → pick department → use app. Guards only check sessionStorage, not tokens.
           </p>
           <p>
-            Copy <code className="bg-muted px-1 rounded">.env.example</code> to <code className="bg-muted px-1 rounded">.env</code> and point{" "}
+            Copy <code className="bg-muted px-1 rounded">.env.example</code> to{" "}
+            <code className="bg-muted px-1 rounded">.env</code> and point{" "}
             <code className="bg-muted px-1 rounded">VITE_API_URL</code> at your server.
           </p>
         </Card>

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as ProfessorRouteImport } from './routes/professor'
 import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -21,6 +22,16 @@ import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AiChatRouteImport } from './routes/ai-chat'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfessorIndexRouteImport } from './routes/professor/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as SupportNewRouteImport } from './routes/support/new'
+import { Route as ProfessorUploadRouteImport } from './routes/professor/upload'
+import { Route as ProfessorTicketsRouteImport } from './routes/professor/tickets'
+import { Route as ProfessorAnalyticsRouteImport } from './routes/professor/analytics'
+import { Route as AdminUploadRouteImport } from './routes/admin/upload'
+import { Route as AdminTicketsRouteImport } from './routes/admin/tickets'
+import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 
 const StatusRoute = StatusRouteImport.update({
   id: '/status',
@@ -35,6 +46,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessorRoute = ProfessorRouteImport.update({
+  id: '/professor',
+  path: '/professor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PendingApprovalRoute = PendingApprovalRouteImport.update({
@@ -82,10 +98,60 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfessorIndexRoute = ProfessorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfessorRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const SupportNewRoute = SupportNewRouteImport.update({
+  id: '/support/new',
+  path: '/support/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessorUploadRoute = ProfessorUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => ProfessorRoute,
+} as any)
+const ProfessorTicketsRoute = ProfessorTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => ProfessorRoute,
+} as any)
+const ProfessorAnalyticsRoute = ProfessorAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => ProfessorRoute,
+} as any)
+const AdminUploadRoute = AdminUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTicketsRoute = AdminTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/ai-chat': typeof AiChatRoute
   '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
@@ -93,13 +159,23 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/pending-approval': typeof PendingApprovalRoute
+  '/professor': typeof ProfessorRouteWithChildren
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/upload': typeof AdminUploadRoute
+  '/professor/analytics': typeof ProfessorAnalyticsRoute
+  '/professor/tickets': typeof ProfessorTicketsRoute
+  '/professor/upload': typeof ProfessorUploadRoute
+  '/support/new': typeof SupportNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/professor/': typeof ProfessorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/ai-chat': typeof AiChatRoute
   '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
@@ -110,11 +186,21 @@ export interface FileRoutesByTo {
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/upload': typeof AdminUploadRoute
+  '/professor/analytics': typeof ProfessorAnalyticsRoute
+  '/professor/tickets': typeof ProfessorTicketsRoute
+  '/professor/upload': typeof ProfessorUploadRoute
+  '/support/new': typeof SupportNewRoute
+  '/admin': typeof AdminIndexRoute
+  '/professor': typeof ProfessorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/ai-chat': typeof AiChatRoute
   '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
@@ -122,9 +208,20 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
   '/pending-approval': typeof PendingApprovalRoute
+  '/professor': typeof ProfessorRouteWithChildren
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/tickets': typeof AdminTicketsRoute
+  '/admin/upload': typeof AdminUploadRoute
+  '/professor/analytics': typeof ProfessorAnalyticsRoute
+  '/professor/tickets': typeof ProfessorTicketsRoute
+  '/professor/upload': typeof ProfessorUploadRoute
+  '/support/new': typeof SupportNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/professor/': typeof ProfessorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,13 +235,23 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/pending-approval'
+    | '/professor'
     | '/progress'
     | '/register'
     | '/status'
+    | '/admin/analytics'
+    | '/admin/notifications'
+    | '/admin/tickets'
+    | '/admin/upload'
+    | '/professor/analytics'
+    | '/professor/tickets'
+    | '/professor/upload'
+    | '/support/new'
+    | '/admin/'
+    | '/professor/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/ai-chat'
     | '/billing'
     | '/dashboard'
@@ -155,6 +262,16 @@ export interface FileRouteTypes {
     | '/progress'
     | '/register'
     | '/status'
+    | '/admin/analytics'
+    | '/admin/notifications'
+    | '/admin/tickets'
+    | '/admin/upload'
+    | '/professor/analytics'
+    | '/professor/tickets'
+    | '/professor/upload'
+    | '/support/new'
+    | '/admin'
+    | '/professor'
   id:
     | '__root__'
     | '/'
@@ -166,14 +283,25 @@ export interface FileRouteTypes {
     | '/library'
     | '/login'
     | '/pending-approval'
+    | '/professor'
     | '/progress'
     | '/register'
     | '/status'
+    | '/admin/analytics'
+    | '/admin/notifications'
+    | '/admin/tickets'
+    | '/admin/upload'
+    | '/professor/analytics'
+    | '/professor/tickets'
+    | '/professor/upload'
+    | '/support/new'
+    | '/admin/'
+    | '/professor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AiChatRoute: typeof AiChatRoute
   BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
@@ -181,9 +309,11 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
   PendingApprovalRoute: typeof PendingApprovalRoute
+  ProfessorRoute: typeof ProfessorRouteWithChildren
   ProgressRoute: typeof ProgressRoute
   RegisterRoute: typeof RegisterRoute
   StatusRoute: typeof StatusRoute
+  SupportNewRoute: typeof SupportNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -207,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professor': {
+      id: '/professor'
+      path: '/professor'
+      fullPath: '/professor'
+      preLoaderRoute: typeof ProfessorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pending-approval': {
@@ -272,12 +409,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/professor/': {
+      id: '/professor/'
+      path: '/'
+      fullPath: '/professor/'
+      preLoaderRoute: typeof ProfessorIndexRouteImport
+      parentRoute: typeof ProfessorRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/support/new': {
+      id: '/support/new'
+      path: '/support/new'
+      fullPath: '/support/new'
+      preLoaderRoute: typeof SupportNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professor/upload': {
+      id: '/professor/upload'
+      path: '/upload'
+      fullPath: '/professor/upload'
+      preLoaderRoute: typeof ProfessorUploadRouteImport
+      parentRoute: typeof ProfessorRoute
+    }
+    '/professor/tickets': {
+      id: '/professor/tickets'
+      path: '/tickets'
+      fullPath: '/professor/tickets'
+      preLoaderRoute: typeof ProfessorTicketsRouteImport
+      parentRoute: typeof ProfessorRoute
+    }
+    '/professor/analytics': {
+      id: '/professor/analytics'
+      path: '/analytics'
+      fullPath: '/professor/analytics'
+      preLoaderRoute: typeof ProfessorAnalyticsRouteImport
+      parentRoute: typeof ProfessorRoute
+    }
+    '/admin/upload': {
+      id: '/admin/upload'
+      path: '/upload'
+      fullPath: '/admin/upload'
+      preLoaderRoute: typeof AdminUploadRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tickets': {
+      id: '/admin/tickets'
+      path: '/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AdminTicketsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminTicketsRoute: typeof AdminTicketsRoute
+  AdminUploadRoute: typeof AdminUploadRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
+  AdminTicketsRoute: AdminTicketsRoute,
+  AdminUploadRoute: AdminUploadRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface ProfessorRouteChildren {
+  ProfessorAnalyticsRoute: typeof ProfessorAnalyticsRoute
+  ProfessorTicketsRoute: typeof ProfessorTicketsRoute
+  ProfessorUploadRoute: typeof ProfessorUploadRoute
+  ProfessorIndexRoute: typeof ProfessorIndexRoute
+}
+
+const ProfessorRouteChildren: ProfessorRouteChildren = {
+  ProfessorAnalyticsRoute: ProfessorAnalyticsRoute,
+  ProfessorTicketsRoute: ProfessorTicketsRoute,
+  ProfessorUploadRoute: ProfessorUploadRoute,
+  ProfessorIndexRoute: ProfessorIndexRoute,
+}
+
+const ProfessorRouteWithChildren = ProfessorRoute._addFileChildren(
+  ProfessorRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AiChatRoute: AiChatRoute,
   BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
@@ -285,9 +528,11 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
   PendingApprovalRoute: PendingApprovalRoute,
+  ProfessorRoute: ProfessorRouteWithChildren,
   ProgressRoute: ProgressRoute,
   RegisterRoute: RegisterRoute,
   StatusRoute: StatusRoute,
+  SupportNewRoute: SupportNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

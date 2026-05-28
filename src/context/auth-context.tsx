@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { fetchCurrentUser, saveDepartmentToApi } from "@/lib/api/auth";
+import { fetchCurrentUser, logoutFromApi, saveDepartmentToApi } from "@/lib/api/auth";
 import { isApiConfigured } from "@/lib/api/client";
 import {
   clearSession,
@@ -39,8 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   useEffect(() => {
-    const local = getUser();
-    if (!isApiConfigured() || !local?.email) return;
+    if (!isApiConfigured()) return;
 
     void fetchCurrentUser()
       .then((fresh) => {
@@ -58,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
-        /* keep local session if API unavailable */
+        /* not signed in (or API down) — nothing to do */
       });
   }, []);
 
@@ -76,6 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearSession();
     setUserState(null);
     setDepartmentState(null);
+    if (isApiConfigured()) {
+      void logoutFromApi().catch(() => {
+        /* cookie may already be gone */
+      });
+    }
   }, []);
 
   const setDepartment = useCallback((dept: StoredDepartment) => {

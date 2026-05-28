@@ -1,4 +1,10 @@
-export function ChatBubble({ role, children }: { role: "user" | "ai" | "me"; children: React.ReactNode }) {
+export function ChatBubble({
+  role,
+  children,
+}: {
+  role: "user" | "ai" | "me";
+  children: React.ReactNode;
+}) {
   const isUser = role === "user" || role === "me";
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>

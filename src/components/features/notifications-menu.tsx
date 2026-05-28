@@ -51,7 +51,9 @@ export function NotificationsMenu() {
         ) : isLoading ? (
           <div className="px-3 py-6 text-center text-sm text-muted-foreground">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="px-3 py-6 text-center text-sm text-muted-foreground">No notifications</div>
+          <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+            No notifications
+          </div>
         ) : (
           items.map((n) => (
             <DropdownMenuItem
@@ -60,7 +62,9 @@ export function NotificationsMenu() {
               onClick={() => markRead.mutate(n.id)}
             >
               <div className="flex w-full items-center justify-between gap-2">
-                <span className={cn("text-sm font-medium", !n.read && "text-foreground")}>{n.title}</span>
+                <span className={cn("text-sm font-medium", !n.read && "text-foreground")}>
+                  {n.title}
+                </span>
                 {!n.read && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
               </div>
               <span className="text-xs text-muted-foreground line-clamp-2">{n.body}</span>

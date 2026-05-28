@@ -93,8 +93,9 @@ function RegisterForm() {
 
         <h1 className="text-2xl font-semibold tracking-tight">Register with university email</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Only <strong>.edu.et</strong> addresses. Your role (student, lecturer, or admin) is detected
-          automatically — an administrator must approve your account before you can use the app.
+          Only <strong>.edu.et</strong> addresses. Your role (student, lecturer, or admin) is
+          detected automatically — an administrator must approve your account before you can use the
+          app.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
@@ -133,7 +134,8 @@ function RegisterForm() {
             )}
             {ok && (
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-primary" /> Admin approval required after sign-up
+                <CheckCircle2 className="h-3 w-3 text-primary" /> Admin approval required after
+                sign-up
               </p>
             )}
           </div>

@@ -12,7 +12,17 @@ export type StoredDepartment = {
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
+export type StoredSubscription = {
+  plan: "free" | "student" | "premium";
+  expiryDate: string | null;
+  dailyDownloadsLeft: number;
+  streakDays: number;
+  lastActiveDate: string | null;
+  totalDownloads: number;
+};
+
 export type StoredUser = {
+  id?: string;
   name: string;
   email: string;
   role: "student" | "professor" | "admin";
@@ -20,6 +30,9 @@ export type StoredUser = {
   approvalStatus: ApprovalStatus;
   year?: string;
   university?: string;
+  professorDepartmentId?: string;
+  badges?: string[];
+  subscription?: StoredSubscription;
 };
 
 function readJson<T>(key: string): T | null {
@@ -54,6 +67,7 @@ export function normalizeStoredUser(
 ): StoredUser {
   const role = raw.role ?? detectRoleFromEmail(raw.email);
   return {
+    id: raw.id,
     name: raw.name,
     email: raw.email,
     role,
@@ -61,6 +75,9 @@ export function normalizeStoredUser(
     approvalStatus: raw.approvalStatus ?? "approved",
     year: raw.year,
     university: raw.university,
+    professorDepartmentId: raw.professorDepartmentId,
+    badges: raw.badges ?? [],
+    subscription: raw.subscription,
   };
 }
 
