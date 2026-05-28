@@ -109,7 +109,7 @@ function LibraryPage() {
           onRetry={() => list.refetch()}
         >
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {list.data!.map((m) => (
+            {(list.data ?? []).map((m) => (
               <Card key={m.id} className="p-5 hover:border-primary/40 transition">
                 <div className="flex justify-between">
                   <Badge variant="outline" className="text-[10px]">

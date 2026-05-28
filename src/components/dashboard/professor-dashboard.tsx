@@ -75,7 +75,7 @@ export function ProfessorDashboard() {
           onRetry={() => materials.refetch()}
         >
           <Card className="divide-y">
-            {materials.data!.slice(0, 8).map((m) => (
+            {(materials.data ?? []).slice(0, 8).map((m) => (
               <div key={m.id} className="p-4 flex justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-medium text-sm truncate">{m.title}</div>

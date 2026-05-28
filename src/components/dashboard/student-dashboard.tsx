@@ -69,7 +69,7 @@ export function StudentDashboard() {
           >
             <Card>
               <div className="divide-y">
-                {materials.data!.slice(0, 5).map((m) => (
+                {(materials.data ?? []).slice(0, 5).map((m) => (
                   <div key={m.id} className="flex items-center gap-3 p-4 hover:bg-accent/30">
                     <MaterialIcon type={m.type} />
                     <div className="min-w-0 flex-1">

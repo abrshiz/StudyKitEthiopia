@@ -154,73 +154,54 @@ async function seedBadges() {
   console.info("[seed] badges");
 }
 
+async function upsertUser(email: string, fields: Record<string, unknown>) {
+  // Use findOneAndUpdate({upsert:true}) so we don't crash on existing
+  // demo users (likely from a previous schema). Existing fields are
+  // overwritten with the canonical demo values; missing fields are filled.
+  return User.findOneAndUpdate(
+    { email },
+    { $set: fields, $setOnInsert: { email } },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+}
+
 async function seedUsers() {
   const csDept = await Department.findOne({ name: "Computer Science" });
   const hash = await bcrypt.hash(DEMO_PASSWORD, 12);
 
-  const existingStudent = await User.findOne({ email: DEMO_STUDENT });
-  const existingProfessor = await User.findOne({ email: DEMO_PROFESSOR });
-  const existingAdmin = await User.findOne({ email: DEMO_ADMIN });
-  if (existingStudent && existingProfessor && existingAdmin) {
-    await User.updateMany(
-      { email: { $in: [DEMO_STUDENT, DEMO_PROFESSOR, DEMO_ADMIN] } },
-      { $set: { approvalStatus: "approved", approvedAt: new Date() } },
-    );
-    if (csDept) {
-      await User.updateOne(
-        { email: DEMO_PROFESSOR },
-        { $set: { professorDepartmentId: csDept._id, role: "professor" } },
-      );
-      await User.updateOne(
-        { email: DEMO_STUDENT },
-        { $set: { departmentId: csDept._id } },
-      );
-    }
-    console.info("[seed] demo users already exist — ensured approved + scoped");
-    return {
-      student: existingStudent,
-      professor: await User.findOne({ email: DEMO_PROFESSOR }),
-      admin: existingAdmin,
-      csDept,
-    };
-  }
+  const student = await upsertUser(DEMO_STUDENT, {
+    name: "Demo Student",
+    passwordHash: hash,
+    role: detectRoleFromEmail(DEMO_STUDENT),
+    approvalStatus: "approved",
+    approvedAt: new Date(),
+    university: "Addis Ababa University",
+    year: "Year 2",
+    departmentId: csDept?._id ?? null,
+    subscription: { plan: "free", dailyDownloadsLeft: 5 },
+  });
 
-  const [student, professor, admin] = await User.insertMany([
-    {
-      name: "Demo Student",
-      email: DEMO_STUDENT,
-      passwordHash: hash,
-      role: detectRoleFromEmail(DEMO_STUDENT),
-      approvalStatus: "approved",
-      approvedAt: new Date(),
-      university: "Addis Ababa University",
-      year: "Year 2",
-      departmentId: csDept?._id ?? null,
-      subscription: { plan: "free", dailyDownloadsLeft: 5 },
-    },
-    {
-      name: "Prof. Tewodros (CS)",
-      email: DEMO_PROFESSOR,
-      passwordHash: hash,
-      role: "professor",
-      approvalStatus: "approved",
-      approvedAt: new Date(),
-      university: "Addis Ababa University",
-      departmentId: csDept?._id ?? null,
-      professorDepartmentId: csDept?._id ?? null,
-    },
-    {
-      name: "StudyKit Admin",
-      email: DEMO_ADMIN,
-      passwordHash: hash,
-      role: "admin",
-      approvalStatus: "approved",
-      approvedAt: new Date(),
-      university: "Addis Ababa University",
-    },
-  ]);
+  const professor = await upsertUser(DEMO_PROFESSOR, {
+    name: "Prof. Tewodros (CS)",
+    passwordHash: hash,
+    role: "professor",
+    approvalStatus: "approved",
+    approvedAt: new Date(),
+    university: "Addis Ababa University",
+    departmentId: csDept?._id ?? null,
+    professorDepartmentId: csDept?._id ?? null,
+  });
 
-  console.info("[seed] demo users (password: StudyKit123!)");
+  const admin = await upsertUser(DEMO_ADMIN, {
+    name: "StudyKit Admin",
+    passwordHash: hash,
+    role: "admin",
+    approvalStatus: "approved",
+    approvedAt: new Date(),
+    university: "Addis Ababa University",
+  });
+
+  console.info("[seed] demo users upserted (password: StudyKit123!)");
   return { student, professor, admin, csDept };
 }
 
