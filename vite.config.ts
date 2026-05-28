@@ -6,6 +6,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
+  if (!env.VITE_API_URL && mode === "development") {
+    env.VITE_API_URL = "http://localhost:4000/api";
+  }
   const envDefine = Object.fromEntries(
     Object.entries(env).map(([key, value]) => [
       `import.meta.env.${key}`,
@@ -30,7 +33,9 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: "localhost",
-      port: 8080,
+      // Default 8080; if busy, Vite tries 8081 (strictPort: false). Override: VITE_DEV_PORT=8081
+      port: Number(process.env.VITE_DEV_PORT) || 8080,
+      strictPort: false,
     },
     plugins: [
       tailwindcss(),

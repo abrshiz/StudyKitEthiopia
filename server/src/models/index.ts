@@ -1,0 +1,12 @@
+export { User, type UserDocument } from "./User.js";
+export { Department, type DepartmentDocument } from "./Department.js";
+export { Material, type MaterialDocument } from "./Material.js";
+export { Plan, type PlanDocument } from "./Plan.js";
+export { Notification, type NotificationDocument } from "./Notification.js";
+export { ChatMessage, type ChatMessageDocument } from "./ChatMessage.js";
+export { Badge, type BadgeDocument } from "./Badge.js";
+export { UserBadge, type UserBadgeDocument } from "./UserBadge.js";
+export { UserProgress, type UserProgressDocument } from "./UserProgress.js";
+export { CourseProgress, type CourseProgressDocument } from "./CourseProgress.js";
+export { SupportTicket, type SupportTicketDocument } from "./SupportTicket.js";
+export { AuditLog, type AuditLogDocument } from "./AuditLog.js";

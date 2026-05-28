@@ -6,8 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FeatureNotice } from "@/components/coming-soon";
 import { isEduEtEmail } from "@/lib/validation/edu-et";
+import { loginWithApi, canUseLocalSessionOnly } from "@/lib/api/auth";
+import { isApiConfigured, ApiError } from "@/lib/api/client";
+import { GuardedPage } from "@/components/auth/guarded-page";
+import { getPostLoginPath } from "@/lib/auth/routing";
+import { detectRoleFromEmail, roleLabel } from "@/lib/auth/role-from-email";
+import { useAuth } from "@/context/auth-context";
+import { getSelectedDepartment } from "@/lib/session";
 import { GraduationCap, Mail, Phone, Lock, ShieldCheck, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
@@ -16,14 +22,24 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
+  return (
+    <GuardedPage guard={{ guestOnly: true }}>
+      <LoginForm />
+    </GuardedPage>
+  );
+}
+
+function LoginForm() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mfa, setMfa] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const invalid = email.length > 4 && !isEduEtEmail(email);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
@@ -36,8 +52,34 @@ function Login() {
       return;
     }
 
-    // Auth API not connected — continue onboarding flow for now
-    navigate({ to: "/departments" });
+    setLoading(true);
+    try {
+      if (isApiConfigured()) {
+        const user = await loginWithApi({ email, password });
+        signIn(user, user.department ?? null);
+        const dept = user.department ?? getSelectedDepartment();
+        navigate({ to: getPostLoginPath(user, Boolean(dept)) });
+      } else if (canUseLocalSessionOnly()) {
+        const role = detectRoleFromEmail(email);
+        const localUser = {
+          name: email.split("@")[0]!.replace(/\./g, " "),
+          email,
+          role,
+          roleLabel: roleLabel(role),
+          approvalStatus: "approved" as const,
+        };
+        signIn(localUser);
+        navigate({ to: getPostLoginPath(localUser, Boolean(getSelectedDepartment())) });
+      }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 403) {
+        setError(err.message);
+        return;
+      }
+      setError(err instanceof ApiError ? err.message : "Sign in failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -51,23 +93,20 @@ function Login() {
         </Link>
         <div>
           <h2 className="text-3xl font-semibold leading-tight">Welcome back.</h2>
-          <p className="mt-3 text-primary-foreground/80 max-w-sm">
-            Sign in with your university email to pick up where you left off.
+          <p className="mt-3 text-primary-foreground/85 max-w-sm">
+            Sign in with your university email. Session is kept in your browser — no tokens stored in
+            the app.
           </p>
         </div>
-        <div className="text-xs text-primary-foreground/60">
-          Protected by .edu.et domain verification and optional multi-factor authentication.
-        </div>
+        <p className="text-xs text-primary-foreground/65">
+          .edu.et verification · optional MFA when your API enables it
+        </p>
       </div>
 
       <div className="flex items-center justify-center p-6 lg:p-12">
-        <Card className="w-full max-w-md p-7">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+        <Card className="w-full max-w-md p-7 border-border/80 shadow-sm">
+          <h1 className="text-2xl font-semibold tracking-tight text-earth">Sign in</h1>
           <p className="mt-1 text-sm text-muted-foreground">Use your university credentials</p>
-
-          <div className="mt-4">
-            <FeatureNotice featureId="auth" />
-          </div>
 
           <form onSubmit={handleSubmit} className="mt-6">
             <Tabs defaultValue="email">
@@ -76,7 +115,7 @@ function Login() {
                   <Mail className="h-4 w-4 mr-1.5" />
                   Email
                 </TabsTrigger>
-                <TabsTrigger value="phone" type="button" disabled title="Phone sign-in — coming soon">
+                <TabsTrigger value="phone" type="button" disabled>
                   <Phone className="h-4 w-4 mr-1.5" />
                   Phone
                 </TabsTrigger>
@@ -95,6 +134,7 @@ function Login() {
                     onChange={(e) => setEmail(e.target.value)}
                     className={invalid ? "border-destructive" : ""}
                     required
+                    autoComplete="email"
                   />
                   {invalid && (
                     <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
@@ -117,6 +157,7 @@ function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={8}
+                      autoComplete="current-password"
                     />
                   </div>
                 </div>
@@ -124,9 +165,9 @@ function Login() {
             </Tabs>
 
             <label className="flex items-center gap-2 mt-5 text-sm">
-              <Checkbox checked={mfa} onCheckedChange={(v) => setMfa(!!v)} disabled />
+              <Checkbox checked={mfa} onCheckedChange={(v) => setMfa(!!v)} />
               <ShieldCheck className="h-4 w-4 text-primary" />
-              Multi-factor authentication (coming soon)
+              Require multi-factor authentication
             </label>
 
             {error && (
@@ -136,8 +177,8 @@ function Login() {
               </p>
             )}
 
-            <Button type="submit" className="w-full mt-6">
-              Continue to department selection
+            <Button type="submit" className="w-full mt-6" disabled={loading}>
+              {loading ? "Signing in…" : "Continue"}
             </Button>
           </form>
 

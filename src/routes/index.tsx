@@ -26,7 +26,7 @@ function Landing() {
             <div className="h-9 w-9 rounded-xl bg-primary grid place-items-center text-primary-foreground">
               <GraduationCap className="h-5 w-5" />
             </div>
-            <span className="font-semibold tracking-tight">StudyKit ET</span>
+            <span className="font-semibold tracking-tight text-earth">StudyKit ET</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground">Features</a>
@@ -49,7 +49,7 @@ function Landing() {
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Built for 231 Ethiopian university departments
           </Badge>
-          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight max-w-3xl mx-auto text-earth dark:text-foreground">
             Your AI study kit, tuned for <span className="text-primary">Ethiopian</span> universities.
           </h1>
           <p className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -60,8 +60,8 @@ function Landing() {
             <Link to="/register">
               <Button size="lg" className="gap-2">Start free with .edu.et email <ArrowRight className="h-4 w-4" /></Button>
             </Link>
-            <Link to="/status">
-              <Button size="lg" variant="outline">See what&apos;s live</Button>
+            <Link to="/dashboard">
+              <Button size="lg" variant="outline">Open dashboard</Button>
             </Link>
           </div>
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 justify-center text-xs text-muted-foreground">

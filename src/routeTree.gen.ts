@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as DepartmentsRouteImport } from './routes/departments'
@@ -34,6 +35,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingApprovalRoute = PendingApprovalRouteImport.update({
+  id: '/pending-approval',
+  path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/departments': typeof DepartmentsRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/progress': typeof ProgressRoute
   '/register': typeof RegisterRoute
   '/status': typeof StatusRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/library'
     | '/login'
+    | '/pending-approval'
     | '/progress'
     | '/register'
     | '/status'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/library'
     | '/login'
+    | '/pending-approval'
     | '/progress'
     | '/register'
     | '/status'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/library'
     | '/login'
+    | '/pending-approval'
     | '/progress'
     | '/register'
     | '/status'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   DepartmentsRoute: typeof DepartmentsRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  PendingApprovalRoute: typeof PendingApprovalRoute
   ProgressRoute: typeof ProgressRoute
   RegisterRoute: typeof RegisterRoute
   StatusRoute: typeof StatusRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending-approval': {
+      id: '/pending-approval'
+      path: '/pending-approval'
+      fullPath: '/pending-approval'
+      preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   DepartmentsRoute: DepartmentsRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  PendingApprovalRoute: PendingApprovalRoute,
   ProgressRoute: ProgressRoute,
   RegisterRoute: RegisterRoute,
   StatusRoute: StatusRoute,

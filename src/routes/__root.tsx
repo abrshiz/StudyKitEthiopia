@@ -1,4 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AppPreferencesProvider } from "@/context/app-preferences";
+import { AuthProvider } from "@/context/auth-context";
+import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
   Link,
@@ -35,6 +38,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const message = error?.message ?? "Unknown error";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -45,6 +49,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        {import.meta.env.DEV && (
+          <p className="mt-3 text-xs text-destructive font-mono break-all">{message}</p>
+        )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -117,8 +124,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AuthProvider>
+        <AppPreferencesProvider>
+          <Outlet />
+          <Toaster richColors position="top-center" />
+        </AppPreferencesProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

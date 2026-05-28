@@ -4,7 +4,11 @@
     "sideEffects": false,
     "type": "module",
     "scripts": {
-      "dev": "vite dev",
+      "dev": "vite dev --port 8080",
+      "dev:8080": "vite dev --port 8080",
+      "dev:8081": "vite dev --port 8081",
+      "dev:api": "npm run dev --prefix server",
+      "seed": "npm run seed --prefix server",
       "build": "vite build",
       "build:dev": "vite build --mode development",
       "preview": "vite preview",
